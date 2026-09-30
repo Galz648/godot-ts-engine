@@ -7,7 +7,7 @@
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { concreteSubclasses, didYouMean, exists, familyOf, isA, isInstantiable } from "./classes.ts";
-import type { SceneNode } from "./scene-node.ts";
+import type { AnySceneNode as SceneNode } from "./scene-node.ts";
 
 export type Issue = {
   severity: "error" | "warning";

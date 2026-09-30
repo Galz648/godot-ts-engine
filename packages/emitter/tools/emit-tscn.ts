@@ -7,24 +7,10 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import type { ScriptPath, TexturePath } from "../src/paths.ts";
+import type { PropValue, SceneNode, SubResource } from "../../scene/src/index.ts";
 
-export type SubResource = { type: string; props?: Record<string, PropValue> }; // stretch goal
-export type PropValue =
-  | number
-  | boolean
-  | string //               emitted quoted:  "Hello"
-  | { raw: string } //      emitted as-is:   Vector2(10, 20)
-  | { ext: TexturePath } // emitted as:      ExtResource("2_ball")
-  | { sub: SubResource }; // emitted as:     SubResource("RectangleShape2D_1")
-
-export type SceneNode = {
-  name: string;
-  type: string; // Godot class, e.g. "CharacterBody2D"
-  script?: ScriptPath;
-  props?: Record<string, PropValue>;
-  children?: SceneNode[];
-};
+// The scene types live in packages/scene (shared with the validator). Re-exported so existing imports keep working.
+export type { PropValue, SceneNode, SubResource };
 
 // ---- emitter ---------------------------------------------------------------------------------
 

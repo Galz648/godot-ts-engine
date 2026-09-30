@@ -1,6 +1,10 @@
-import type { SceneNode } from "../tools/emit-tscn.ts";
+import type { SceneNode } from "../../scene/src/index.ts";
+import type { ScriptPath, TexturePath } from "../src/paths.ts";
 
-const scene: SceneNode = {
+// Narrow vocabulary: script and texture paths must be ones the (stub) registry knows about.
+type Vocab = { type: string; script: ScriptPath; texture: TexturePath };
+
+const scene: SceneNode<Vocab> = {
   name: "Main",
   type: "Node2D",
   children: [

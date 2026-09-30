@@ -1,0 +1,14 @@
+{
+  "name": "scene",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "check:examples": "bun examples/check-invalid.ts",
+    "demo": "bun examples/one-tree.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.3",
+    "typescript": "~5.9"
+  }
+}
