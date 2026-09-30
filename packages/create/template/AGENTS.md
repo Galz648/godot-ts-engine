@@ -17,6 +17,8 @@ written to `.tscn` by the engine in `engine/` (a git submodule).
 - One exported class per file; the class name becomes the GDScript `class_name` and must be unique in the project.
 - Use Godot's types (`float`, `int`, `bool`, `Vector2`) and API names (`Input.is_physical_key_pressed`, `clampf`).
 - `@exports` marks an exported variable. A definition sets it with `scriptProps`, not `props`.
+- Signal handlers go in the TypeScript script. Connecting a signal in the Godot editor writes a stub into the generated `.gd`,
+  and the next convert deletes it: write the method in `src/scripts/` first, then connect it in the editor or in code.
 - TypeScript 5.9 only (TypeScript 7 breaks tstogd and the editor plugin).
 
 ## Scene definitions

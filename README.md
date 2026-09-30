@@ -18,7 +18,11 @@ each package runs on its own, against stubs of the others (see `docs/DECISIONS.m
 
 ## Start a new game
 
-    npx github:Galz648/godot-ts-engine my-game --name "My Game"
+    npx github:Galz648/godot-ts-engine#v0.1.0 my-game --name "My Game" --engine-ref v0.1.0
+
+Use this form, with the version in both places: `#v0.1.0` picks the template, `--engine-ref v0.1.0` picks the engine the
+game is pinned to, and the two must match. Without them you get the template and engine from `main`, which can change
+under you. Releases: [github.com/Galz648/godot-ts-engine/releases](https://github.com/Galz648/godot-ts-engine/releases).
 
 It writes a small Godot project (one scene definition and one TypeScript script: a square you move with the arrow keys), adds
 this engine as a submodule pinned to one commit, installs, builds the editor plugin, builds, imports into Godot, runs

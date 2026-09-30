@@ -71,6 +71,9 @@ squiggles. That is the trade-off, and it may change if TypeScript 7 ever support
 - **Registry keys can be renamed** when a same-named file appears elsewhere (`main` becomes `scriptsPongMain`). Code using the old key stops compiling.
 - **The emitter is deliberately small.** No instanced sub-scenes, no `uid://` references, no signal connections, no groups (found again in the Breakout proof: connect and group in code instead).
   Anything else has to go through `{ raw: "..." }`.
+- **Connecting a signal in the Godot editor writes into a generated script.** Godot adds the handler stub to the `.gd` file,
+  which tstogd overwrites on the next convert; the connection then points at a missing method. Write the handler in the
+  TypeScript script first (seen in the hand session, `MILESTONE-1.md`).
 - **Registry types are per game.** The path registry is generated from a game's files, so the engine cannot import it
   directly. How the engine's scene type learns a game's paths is the next integration step.
 - **Godot exits with status 0 even when a scene fails to load.** Anything automated must read Godot's output, not its exit code.

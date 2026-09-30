@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://dy18fgplwh2ft"]
+
+[ext_resource type="Script" uid="uid://b0u718hc72d71" path="res://scripts/lightway/level.gd" id="1_level"]
+[ext_resource type="Script" uid="uid://m5deercdxxva" path="res://scripts/lightway/ball.gd" id="2_ball"]
+
+[node name="Level" type="Node2D" unique_id=2056750605]
+script = ExtResource("1_level")
+
+[node name="Ball" type="Node2D" parent="." unique_id=270974668]
+position = Vector2(64, 64)
+script = ExtResource("2_ball")
+
+[node name="Walls" type="Node2D" parent="." unique_id=6714805]
+
+[node name="Left" type="Node2D" parent="Walls" unique_id=1743234352]
+
+[node name="Paddle" type="Node2D" parent="." unique_id=1909922451]
+position = Vector2(200, 300)
+
+[node name="Timer" type="Timer" parent="." unique_id=27060922]
+
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]
