@@ -7,7 +7,7 @@ cleanly, and write down where we stand.** So most of the pipeline is deliberatel
 
 | # | Layer | Package | State | Evidence (run these) |
 | --- | --- | --- | --- | --- |
-| 1 | Shared scene type | `packages/scene` | **Integrated** | `cd packages/scene && bun run check && bun run check:examples` (8 expected type errors, exactly) |
+| 1 | Shared scene type | `packages/scene` | **Integrated** | `cd packages/scene && bun run check && bun run check:examples` (expected type errors, exactly: 8 in one file, 3 in the registry example) |
 | 2 | Validator uses it | `packages/validator` | **Integrated** | `cd packages/validator && npm test` (40 pass) |
 | 3 | Emitter uses it | `packages/emitter` | **Integrated** | `cd packages/emitter && bun run emit` (prints `unchanged`: output identical to before the change) |
 | 4 | Path registry | `packages/registry` | Standalone, **held**. Usable by hand today: see `USING-THE-REGISTRY.md` | `cd packages/registry && bun run gen && bun run check`; `cd packages/scene && bun run demo:registry` |
