@@ -1,0 +1,7 @@
+{
+  "name": "scene-lint",
+  "version": "0.0.0",
+  "private": true,
+  "description": "tsserver plugin: runs the scene validator on *.def.ts and reports issues as diagnostics",
+  "main": "dist/src/index.js"
+}
