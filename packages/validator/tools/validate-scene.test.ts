@@ -16,6 +16,7 @@ import notInstantiable from "../sample/fixtures/not-instantiable.ts";
 import shapeNeedsBody from "../sample/fixtures/shape-needs-body.ts";
 import shapeNeedsShapeProp from "../sample/fixtures/shape-needs-shape-prop.ts";
 import spriteNeedsTexture from "../sample/fixtures/sprite-needs-texture.ts";
+import scriptPropsNeedScript from "../sample/fixtures/script-props-need-script.ts";
 import threeProblems from "../sample/fixtures/three-problems.ts";
 import uniqueSiblingNames from "../sample/fixtures/unique-sibling-names.ts";
 import unknownClass from "../sample/fixtures/unknown-class.ts";
@@ -39,6 +40,7 @@ const perRule: { rule: string; severity: "error" | "warning"; tree: SceneNode; p
   { rule: "shape-needs-body", severity: "warning", tree: shapeNeedsBody, path: "Shape", offender: (t) => t.children![0] },
   { rule: "shape-needs-shape-prop", severity: "warning", tree: shapeNeedsShapeProp, path: "Wall/Shape", offender: (t) => t.children![0].children![0] },
   { rule: "sprite-needs-texture", severity: "warning", tree: spriteNeedsTexture, path: "Sprite", offender: (t) => t.children![0] },
+  { rule: "script-props-need-script", severity: "warning", tree: scriptPropsNeedScript, path: "Enemy", offender: (t) => t.children![0] },
 ];
 
 for (const c of perRule) {
@@ -215,4 +217,14 @@ test("CLI: warnings alone exit 0 and name the node", () => {
 test("CLI: any error exits non-zero", () => {
   assert.equal(cli("valid-name").code, 1);
   assert.equal(cli("three-problems").code, 1);
+});
+
+test("script-props-need-script: script variables on a node with no script are reported", () => {
+  const issues = validate({ name: "R", type: "Node2D", scriptProps: { speed: 1 } });
+  assert.deepEqual(issues.map((i) => [i.rule, i.severity, i.path]), [["script-props-need-script", "warning", "."]]);
+});
+
+test("script-props-need-script: fine when the node has a script, or no scriptProps", () => {
+  assert.deepEqual(validate({ name: "R", type: "Node2D", script: "res://scripts/a.gd", scriptProps: { speed: 1 } }), []);
+  assert.deepEqual(validate({ name: "R", type: "Node2D", scriptProps: {} }), []);
 });

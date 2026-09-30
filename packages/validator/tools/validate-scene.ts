@@ -106,9 +106,16 @@ const spriteNeedsTexture: Rule = (node) => {
   return issue("warning", "sprite-needs-texture", node, 'This Sprite2D has no texture, so nothing will be drawn. Set the "texture" prop.');
 };
 
+// Godot ignores script variables on a node that has no script, and says nothing about it.
+const scriptPropsNeedScript: Rule = (node) => {
+  if (node.script != null || node.scriptProps == null || Object.keys(node.scriptProps).length === 0) return [];
+  return issue("warning", "script-props-need-script", node,
+    "These script variables are ignored because this node has no script. Set the \"script\" field, or move them to \"props\" if they belong to the node itself.");
+};
+
 export const RULES: Rule[] = [
   uniqueSiblingNames, validName, unknownClass, notANode, notInstantiable,
-  bodyNeedsShape, shapeNeedsBody, shapeNeedsShapeProp, spriteNeedsTexture,
+  bodyNeedsShape, shapeNeedsBody, shapeNeedsShapeProp, spriteNeedsTexture, scriptPropsNeedScript,
 ];
 
 // ---- the walk ------------------------------------------------------------------------------------

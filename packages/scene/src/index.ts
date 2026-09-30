@@ -32,6 +32,11 @@ export type SceneNode<V extends Vocabulary = Vocabulary> = {
   name: string;
   type: V["type"];
   script?: V["script"];
-  props?: Record<string, PropValue<V>>;
+  props?: Record<string, PropValue<V>>; //        properties of the Godot node itself: position, offset_left, text ...
+  scriptProps?: Record<string, PropValue<V>>; //  values for variables the node's SCRIPT declares (@exports): is_player, speed ...
   children?: SceneNode<V>[];
 };
+
+// Why two property bags: Godot only accepts a script's own variables once the script is attached, so the emitter writes
+// `scriptProps` after the `script` line. Written before it, Godot drops them silently (no error). The emitter cannot tell
+// the two kinds apart by name, so the tree says which is which.

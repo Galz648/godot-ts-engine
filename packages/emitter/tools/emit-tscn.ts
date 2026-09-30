@@ -52,6 +52,7 @@ export function emitTscn(root: SceneNode): string {
     const where = parent === null ? "" : ` parent="${parent}"`;
     const lines = [`[node name="${node.name}" type="${node.type}"${where}]`, ...propLines(node.props)];
     if (node.script) lines.push(`script = ExtResource("${extId(node.script, "Script")}")`);
+    lines.push(...propLines(node.scriptProps)); // after the script line: Godot drops these silently if they come before it
     nodeBlocks.push(lines.join("\n"));
 
     // root's children use ".", deeper nodes use the path from the root: "Ball", "Ball/Sprite"
