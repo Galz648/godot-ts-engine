@@ -176,3 +176,34 @@ criterion 7. Criterion 2 passed at the tsserver level only.
 - Decide whether to suppress the "not statically analyzable" warning while a literal is mid-edit (flicker).
 - Give the no-`scene` case a better squiggle position than the first character.
 - Run the editor checks above, then record results here.
+
+## Rework (2026-09-30): real validator, shared type, tolerant reader
+
+What changed and why: the first version called a two-rule stub, read a top-level `texture` field that the real scene type does
+not have, and gave up on the whole file at the first call, spread or variable. Real definitions (Pong's `paddle(...)`, Breakout's
+loops and helpers) are full of those, so it would have been silent on almost everything.
+
+- **Real validator.** The validator's core was made pure (`tools/validate-core.ts`: no Node APIs, no `import.meta`; the class data is a
+  JSON import; the CLI moved to `validate-scene.ts`, which re-exports the core). The plugin imports it and is bundled with Bun into one
+  CommonJS file (`plugins/scene-lint/dist`, 92 KB, validator and class data included) because tsserver loads plugins with `require`.
+  Validator: still 44 of 44 tests.
+- **Shared scene type** (`packages/scene`). The reader builds that type from the AST: `name`, `type`, `script`, the keys of `props` and
+  `scriptProps`, `children`. The stub files are gone.
+- **Tolerant reader.** A node whose `name` or `type` is not a plain string is *opaque* and left out. A call, spread or variable among the
+  `children`, or a spread in `props`, is a *gap* on that node. Rules that would be wrong with a gap are silenced for that node only
+  (`body-needs-shape` when children have a gap; `shape-needs-shape-prop` and `sprite-needs-texture` when props have a gap). Everything
+  literal is still checked. Only a root that is not a literal (`const scene = build()`) still gives the "not statically analyzable" warning.
+- **Tests** (real tsserver, `bun run test`): the earlier 16, updated (a call is now opaque, not a reason to give up), plus 5 new ones on
+  `sample/helpers.def.ts` (helper calls, a variable, a spread and a script constant give no false positives; a class typo in a literal
+  node; removing the only helper call brings the missing-shape warning back; script variables without a script; duplicate names
+  beside opaque siblings). Result: ALL CHECKS PASSED.
+- **Real files** (`node test/check-file.mjs <folder> <file> [--edit from to]`, prints what the editor would show): the game repo's
+  `pong.def.ts` and `breakout.def.ts` give 0 scene-lint diagnostics (no false positives). With unsaved mistakes in their literal parts the
+  plugin reports them: a class typo, a Resource used as a node, duplicate sibling names, script variables with no script. A typo inside
+  a helper function (`brick`) is invisible to the plugin; TypeScript still reports it, and the build's validator checks the whole tree.
+
+Limits, honestly: in a definition like Breakout's most nodes are made by helpers, so the plugin sees only the literal skeleton
+(camera, HUD, timer, containers). The build (`npm run build`) is where the whole tree is validated. The plugin is live feedback, not the gate.
+
+Not verified: any of this **in the Cursor editor** (only tsserver and the tool above), the old criteria 2 and 7 in an editor, speed on a
+scene file with many literal nodes, TypeScript other than 5.9.3.

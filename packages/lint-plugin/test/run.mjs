@@ -122,13 +122,13 @@ let d = await a.diagnostics(DEF);
 check("0. untouched sample file: no diagnostics", d.length === 0, show(d));
 
 // 1. delete the CollisionShape2D from Ball, without saving
-const shapeLine = '        { name: "Shape", type: "CollisionShape2D" },\n';
+const shapeLine = '        { name: "Shape", type: "CollisionShape2D", props: { shape: { sub: { type: "CircleShape2D", props: { radius: 8 } } } } },\n';
 await a.setText(DEF, original.replace(shapeLine, ""));
 d = await a.diagnostics(DEF);
 const ballAt = a.text(DEF).indexOf('name: "Ball"');
 check(
   "1. delete CollisionShape2D -> one warning on `name: \"Ball\"` (file not saved)",
-  lint(d).length === 1 && d.length === 1 && lint(d)[0].category === "warning" && lint(d)[0].code === 90001 && lint(d)[0].span === 'name: "Ball"' && lint(d)[0].start === ballAt,
+  lint(d).length === 1 && d.length === 1 && lint(d)[0].category === "warning" && lint(d)[0].code === 90001 && lint(d)[0].span === 'name: "Ball"' && lint(d)[0].start === ballAt && lint(d)[0].message.startsWith("This node has no shape"),
   show(d),
 );
 
@@ -158,26 +158,55 @@ check(
 );
 await a.setText(DEF, original);
 
-// 5. a child replaced by a function call
+// 5. a child replaced by a function call: opaque, not a reason to give up
 const call = original.replace('{ name: "Walls", type: "Node2D" }', "makeWall()");
 await a.setText(DEF, call);
 d = await a.diagnostics(DEF);
 check(
-  "5a. child replaced by a call -> exactly one 'not statically analyzable' diagnostic from scene-lint",
-  lint(d).length === 1 && lint(d)[0].code === 90002 && lint(d)[0].category === "warning" && lint(d)[0].span === "makeWall()",
+  "5a. child replaced by a call -> scene-lint stays quiet (the call is opaque); TS still reports makeWall as undeclared",
+  lint(d).length === 0 && d.some((x) => x.code === 2304),
   show(d),
 );
-check("5b. ...and normal TS errors still show (makeWall is undeclared -> TS2304)", d.some((x) => x.code === 2304), "");
+await a.setText(DEF, call.replace(shapeLine, ""));
+d = await a.diagnostics(DEF);
+check("5b. ...and literal parts are still checked next to the call: deleting Ball's shape still warns", lint(d).length === 1 && lint(d)[0].span === 'name: "Ball"' && lint(d)[0].category === "warning", show(d));
 const alive = await a.diagnostics(OTHER).then(() => true, () => false);
 check("5c. server still answers requests afterwards", alive);
+await a.setText(DEF, original.replace("export const scene = {", "export const scene = build() ?? {"));
+d = await a.diagnostics(DEF);
+check("5d. the scene root itself not a literal -> one 'not statically analyzable' warning", lint(d).length === 1 && lint(d)[0].code === 90002 && lint(d)[0].category === "warning", show(d));
 await a.setText(DEF, original);
 d = await a.diagnostics(DEF);
-check("5d. restoring the file clears it", d.length === 0, show(d));
+check("5e. restoring the file clears it", d.length === 0, show(d));
 
 // 6. files that do not match *.def.ts
 await a.setText(OTHER, 'export const answer: number = "not a number";\n');
 d = await a.diagnostics(OTHER);
 check("6. other.ts: only the normal TS error, nothing from scene-lint", d.length === 1 && d[0].code === 2322 && lint(d).length === 0, show(d));
+
+// 9. a definition written with helpers, a loop and spreads (sample/helpers.def.ts)
+const HELP = join(SAMPLE, "helpers.def.ts");
+const helpOriginal = readFileSync(HELP, "utf8");
+await a.open(HELP, SAMPLE);
+d = await a.diagnostics(HELP);
+check("9a. helper calls, a variable, a spread, a script constant: no false positives from scene-lint", lint(d).length === 0, show(d));
+
+await a.setText(HELP, helpOriginal.replace('type: "Label"', 'type: "Labell"'));
+d = await a.diagnostics(HELP);
+check("9b. a class typo in a literal node is still an error on that node (and TS flags it too)", lint(d).length === 1 && lint(d)[0].category === "error" && lint(d)[0].span === 'name: "Label"' && d.some((x) => !x.source), show(d));
+
+await a.setText(HELP, helpOriginal.replace('children: [shape(), { name: "Sprite"', 'children: [{ name: "Sprite"'));
+d = await a.diagnostics(HELP);
+check("9c. remove the only helper call from a body's children -> the missing-shape warning appears (analysis resumes once nothing is opaque)", lint(d).length === 1 && lint(d)[0].span === 'name: "Body"' && lint(d)[0].category === "warning", show(d));
+
+await a.setText(HELP, helpOriginal.replace('{ name: "Label", type: "Label", props: { ...base, text: "hi" } },', '{ name: "Label", type: "Label", scriptProps: { speed: 1 } },'));
+d = await a.diagnostics(HELP);
+check("9d. script variables on a node with no script -> the new validator rule shows in the editor", lint(d).length === 1 && lint(d)[0].message.startsWith("These script variables are ignored"), show(d));
+
+await a.setText(HELP, helpOriginal.replace('{ name: "Bricks", type: "Node2D", children: bricks },', '{ name: "Bricks", type: "Node2D", children: bricks },\n    { name: "Bricks", type: "Node2D" },'));
+d = await a.diagnostics(HELP);
+check("9e. two literal siblings with the same name are still caught next to opaque ones", lint(d).length === 1 && lint(d)[0].category === "error" && lint(d)[0].message.includes("Sibling names must be unique"), show(d));
+await a.setText(HELP, helpOriginal);
 
 check("files on disk were never modified (all edits were unsaved buffers)", readFileSync(DEF, "utf8") === original);
 

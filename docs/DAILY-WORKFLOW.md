@@ -55,3 +55,17 @@ This does not merge anything. It only stops you losing work silently; `LIMITS.md
 - It does not watch the game scripts itself; `tstogd watch` does that.
 - The editor squiggle plugin is separate and still held (`STATUS.md`).
 - Not tested: Windows; definitions that load slowly; more than a few scenes.
+
+## Optional: live squiggles in the editor
+
+The plugin in `packages/lint-plugin` shows the validator's findings as squiggles while you type in a `scene-defs/*.def.ts`
+file. It is live feedback only; `npm run build` is what checks the whole tree. One-time setup in the game repo:
+
+1. Build the plugin: `cd engine/packages/lint-plugin && bun install && bun run build`.
+2. `scene-defs/tsconfig.json` lists it: `"plugins": [{ "name": "scene-lint" }]` (already done in the game repo).
+3. The editor must use the project's TypeScript 5.9 with TypeScript 7 off, and know where the plugin is. The Cursor profile does both:
+   `tools/cursor-profile/launch.sh` (it sets `typescript.tsserver.pluginPaths` to `engine/packages/lint-plugin` and turns TypeScript 7 off).
+   Accept the prompt to use the workspace TypeScript version.
+
+What it sees: the literal parts of a definition. Nodes made by helper functions, loops or spreads are opaque to it (see `LIMITS.md`).
+To see exactly what the editor would show without an editor: `node engine/packages/lint-plugin/test/check-file.mjs scene-defs scene-defs/pong.def.ts`.

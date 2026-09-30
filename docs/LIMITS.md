@@ -54,8 +54,10 @@ squiggles. That is the trade-off, and it may change if TypeScript 7 ever support
 
 ## 3. Smaller limits we know about
 
-- **The plugin reads plain object literals only.** A function call, spread or variable inside the scene tree makes it
-  say "not statically analyzable" and pause checking, rather than guess.
+- **The editor plugin sees only what is written out literally.** Nodes made by a helper function, a loop or a spread are
+  opaque to it: it leaves them out and silences the rules that would be wrong without them. In Breakout most nodes come from
+  helpers, so the plugin checks the literal skeleton only. The build's validator checks the whole tree; the plugin is live
+  feedback, not the gate. A scene whose root is not a literal gets one "not statically analyzable" warning.
 - **Only some of Godot's warnings exist here.** We cover a handful of collision-shape rules. Godot has many more, written
   per class, with no exported list; each extra one must be written and checked by hand. The "Sprite2D needs a texture"
   rule is ours, not Godot's (Godot does not warn about it).

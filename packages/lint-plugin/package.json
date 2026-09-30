@@ -6,8 +6,9 @@
     "plugins/*"
   ],
   "scripts": {
-    "build": "tsc -p plugins/scene-lint",
-    "test": "bun run build && node test/run.mjs"
+    "build": "cd plugins/scene-lint && bun run build",
+    "test": "bun run build && node test/run.mjs",
+    "check": "cd plugins/scene-lint && bun run check"
   },
   "devDependencies": {
     "typescript": "~5.9",

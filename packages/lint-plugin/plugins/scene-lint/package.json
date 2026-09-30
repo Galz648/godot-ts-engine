@@ -3,5 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "description": "tsserver plugin: runs the scene validator on *.def.ts and reports issues as diagnostics",
-  "main": "dist/src/index.js"
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "bun build src/plugin.ts --target node --format cjs --outfile dist/bundle.cjs && printf 'module.exports = require(\"./bundle.cjs\").default;\\n' > dist/index.js",
+    "check": "tsc --noEmit -p ."
+  }
 }

@@ -30,7 +30,7 @@ Done and checked (run `./check-all.sh` in this repo, and `npm run verify:breakou
 **A. Finish the integration (held on purpose, to go slowly)**
 
 1. **Registry hand-over into the scene type.** Today each game writes three lines of `Vocab` by hand and imports engine types by relative path into the submodule. Make that a proper import with a helper.
-2. **Editor plugin on the real validator and the shared type.** It still calls a two-rule stub and reads a top-level `texture` field that no longer exists (it is `props.texture: { ext }`, and there is now `scriptProps`). Then redo the editor checks.
+2. ~~Editor plugin on the real validator and the shared type~~ **Reworked 2026-09-30** (tolerant of helpers and loops; real validator). Still to do: see it work in the Cursor editor, then the old criteria (undo clears the squiggle, feels no slower).
 3. ~~A `build` command~~ **Done (minimal, 2026-09-30):** `packages/build`, see `DAILY-WORKFLOW.md`. Still to do for it: a `--only <scene>` option, and running the registry step only when files changed.
 4. **Move the verifier into the engine** (`verify-scene.gd` and `export-expected.ts`, now in the game repo). It is generic and it found nothing false.
 
