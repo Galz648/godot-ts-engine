@@ -33,8 +33,9 @@ Who decided is marked on each line.
   catches class-name typos), and a generated `NodeType` union of string literals types `SceneNode.type` so a typo is an
   ordinary TypeScript error in the editor. This follows the overview's principle: types only for cheap literal unions, everything
   else as plain code. In progress in `poc3-validator` (see its `SESSION.md`, "Class hierarchy follow-up").
-- **The validator's `sprite-needs-texture` rule is kept for now.** Godot shows no warning for a `Sprite2D` without a texture, so this
-  rule is a project rule, not a Godot rule. Undecided whether to keep it.
+- **The validator's `sprite-needs-texture` rule is kept** (2026-09-30, milestone 1). Godot shows no warning for a `Sprite2D` without a
+  texture, so this rule is a project rule, not a Godot rule. It stays a warning, fires on neither real scene, and its message says
+  "unless a script sets one".
 - **Cursor setup for other people** (user): a separate, small profile in `tools/cursor-profile/`: four TypeScript settings and three
   TypeScript extensions only. No keybindings, no personal settings, no machine paths. `launch.sh` runs it beside the normal Cursor.
   The profile forces TypeScript 7 off because it disables every tsserver plugin, which the scene-lint plugin needs.
@@ -49,7 +50,7 @@ Who decided is marked on each line.
 
 | Item | State |
 | --- | --- |
-| GodotJS to tstogd | decided, no work done yet |
+| GodotJS to tstogd | withdrawn: no such migration exists, tstogd only |
 | `extends` check | decided, not built |
 | Separate engine repo as a submodule | done: `godot-ts-engine`, mounted in the game repo as `engine/` |
 | Class hierarchy in the validator and types | done (validator 40 tests; class data from Godot 4.7.2) |

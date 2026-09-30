@@ -1,0 +1,51 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/pong/main.gd" id="1_4aq3p"]
+[ext_resource type="Script" path="res://scripts/pong/paddle.gd" id="2_l7wnt"]
+[ext_resource type="Script" path="res://scripts/pong/ball.gd" id="3_a84oe"]
+[ext_resource type="PackedScene" path="res://scenes/lightway/level.tscn" id="4_2a1xs"]
+
+[node name="Main" type="Node2D" unique_id=1529629098]
+script = ExtResource("1_4aq3p")
+
+[node name="Background" type="ColorRect" parent="." unique_id=1453498546]
+offset_right = 1152.0
+offset_bottom = 648.0
+color = Color(0.08, 0.09, 0.12, 1)
+
+[node name="Enemy" type="ColorRect" parent="." unique_id=2065749176 groups=["enemies"]]
+offset_left = 1096.0
+offset_top = 276.0
+offset_right = 1112.0
+offset_bottom = 372.0
+script = ExtResource("2_l7wnt")
+is_player = false
+
+[node name="Player" type="ColorRect" parent="." unique_id=917378905]
+offset_left = 40.0
+offset_top = 276.0
+offset_right = 56.0
+offset_bottom = 372.0
+script = ExtResource("2_l7wnt")
+
+[node name="Ball" type="ColorRect" parent="." unique_id=1083837321]
+offset_left = 500.0
+offset_top = 316.0
+offset_right = 584.0
+offset_bottom = 332.0
+script = ExtResource("3_a84oe")
+
+[node name="Score" type="Label" parent="." unique_id=253207000]
+offset_left = 476.0
+offset_top = 24.0
+offset_right = 676.0
+offset_bottom = 64.0
+theme_override_font_sizes/font_size = 32
+text = "0  :  0"
+horizontal_alignment = 1
+
+[node name="Timer" type="Timer" parent="." unique_id=641499478]
+
+[node name="Level" parent="." unique_id=1622768846 instance=ExtResource("4_2a1xs")]
+
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]

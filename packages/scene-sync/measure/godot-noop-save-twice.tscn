@@ -1,0 +1,44 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/pong/main.gd" id="1_b0l6a"]
+[ext_resource type="Script" path="res://scripts/pong/paddle.gd" id="2_47gfh"]
+[ext_resource type="Script" path="res://scripts/pong/ball.gd" id="3_u6w52"]
+
+[node name="Main" type="Node2D" unique_id=1422071584]
+script = ExtResource("1_b0l6a")
+
+[node name="Background" type="ColorRect" parent="." unique_id=1322714435]
+offset_right = 1152.0
+offset_bottom = 648.0
+color = Color(0.08, 0.09, 0.12, 1)
+
+[node name="Player" type="ColorRect" parent="." unique_id=987241437]
+offset_left = 40.0
+offset_top = 276.0
+offset_right = 56.0
+offset_bottom = 372.0
+script = ExtResource("2_47gfh")
+
+[node name="Enemy" type="ColorRect" parent="." unique_id=4175436]
+offset_left = 1096.0
+offset_top = 276.0
+offset_right = 1112.0
+offset_bottom = 372.0
+script = ExtResource("2_47gfh")
+is_player = false
+
+[node name="Ball" type="ColorRect" parent="." unique_id=2074512248]
+offset_left = 568.0
+offset_top = 316.0
+offset_right = 584.0
+offset_bottom = 332.0
+script = ExtResource("3_u6w52")
+
+[node name="ScoreLabel" type="Label" parent="." unique_id=190644434]
+offset_left = 476.0
+offset_top = 24.0
+offset_right = 676.0
+offset_bottom = 64.0
+theme_override_font_sizes/font_size = 32
+text = "0  :  0"
+horizontal_alignment = 1
