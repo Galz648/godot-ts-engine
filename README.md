@@ -24,14 +24,10 @@ If the game uses tstogd, exclude `engine` in its `tstogd.json`, because tstogd s
 
 ## Integration status
 
-The pipeline the PoCs aim at: tstogd compiles scripts, the registry scans the project, you write a scene definition
-using the registry's path types, the plugin squiggles problems while you type, the validator runs as a build step,
-the emitter writes `main.tscn`.
+Short version: the shared scene type, the validator and the emitter are joined (`cd packages/scene && bun run demo`).
+The registry, the editor plugin, a `build` command and a real-scene proof are held on purpose, to go slowly.
+**Full table, evidence and reasons: [`docs/STATUS.md`](docs/STATUS.md).**
 
-| Step | State |
-| --- | --- |
-| 1. One shared `SceneNode` type | **done**: `packages/scene`; the emitter and validator use it. `bun run demo` in `packages/scene` passes one tree to both. |
-| 2. Registry path types inside that type | not done (the type takes a "vocabulary" of allowed classes/paths; a game supplies its generated ones) |
-| 3. The plugin runs the real validator | not done (it still calls a two-rule stub and reads a top-level `texture` field the real type does not have) |
-| 4. One `build` command: tstogd, registry, validator, emitter, in order | not done |
-| 5. Prove it on a real scene (Pong's) | not done |
+The pipeline the PoCs aim at, for reference: tstogd compiles scripts, the registry scans the project, you write a scene
+definition using the registry's path types, the plugin squiggles problems while you type, the validator runs as a build
+step, the emitter writes `main.tscn`.

@@ -38,6 +38,12 @@ Who decided is marked on each line.
   TypeScript extensions only. No keybindings, no personal settings, no machine paths. `launch.sh` runs it beside the normal Cursor.
   The profile forces TypeScript 7 off because it disables every tsserver plugin, which the scene-lint plugin needs.
 
+## Integration pace
+
+- **Go slowly; integrate only the layers that fit together cleanly, and document where we are** (user, 2026-09-30).
+  In practice: the shared scene type, the validator and the emitter are joined (layers 1-3). The registry, the editor
+  plugin, a `build` command and the Pong proof are held on purpose. See `STATUS.md` for the table and the reasons.
+
 ## Status
 
 | Item | State |
@@ -45,5 +51,6 @@ Who decided is marked on each line.
 | GodotJS to tstogd | decided, no work done yet |
 | `extends` check | decided, not built |
 | Separate engine repo as a submodule | done: `godot-ts-engine`, mounted in the game repo as `engine/` |
-| Class hierarchy in the validator and types | in progress |
+| Class hierarchy in the validator and types | done (validator 40 tests; class data from Godot 4.7.2) |
+| Shared `SceneNode` type | done (`packages/scene`), used by the validator and the emitter |
 | Cursor profile | done, in `tools/cursor-profile/` |
