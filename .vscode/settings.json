@@ -1,0 +1,8 @@
+{
+  "typescript.experimental.useTsgo": false,
+  "js/ts.experimental.useTsgo": false,
+  "typescript.tsserver.pluginPaths": [
+    "."
+  ],
+  "js/ts.tsdk.path": "node_modules/typescript/lib"
+}

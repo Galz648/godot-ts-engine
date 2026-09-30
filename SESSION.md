@@ -20,7 +20,9 @@ character range works and where it breaks.
 ## Completed
 
 - Plugin works end to end against a real `tsserver` (TypeScript 5.9.3): 16 automated checks, all PASS, run twice.
-- **Every acceptance criterion was verified at the tsserver level, none was verified in Cursor/VS Code.** See the table.
+- Every acceptance criterion was verified at the tsserver level. In the Cursor editor, criteria 1, 3, 4 and 5 were then
+  run by hand by the user and passed; criteria 2 (undo clears), 6 (deliberate throw) and 7 (feel / speed) are still NOT RUN
+  in the editor. See the table and "Editor run".
 
 Run it yourself:
 
@@ -49,11 +51,11 @@ the test confirms the files on disk are byte-identical afterwards, so these are 
 
 | # | Criterion | tsserver-level result | In the editor |
 | --- | --- | --- | --- |
-| 1 | Deleting the CollisionShape2D from Ball puts a yellow squiggle on `name: "Ball"` without saving | PASS: `[scene-lint 90001 warning] "name: \"Ball\"" "CharacterBody2D "Ball" has no CollisionShape2D or CollisionPolygon2D child, so it cannot collide."`, span start = first `name: "Ball"` | **NOT RUN** |
+| 1 | Deleting the CollisionShape2D from Ball puts a yellow squiggle on `name: "Ball"` without saving | PASS: `[scene-lint 90001 warning] "name: \"Ball\"" "CharacterBody2D "Ball" has no CollisionShape2D or CollisionPolygon2D child, so it cannot collide."`, span start = first `name: "Ball"` | **PASS (by hand, by the user)**: yellow squiggle on Ball, after selecting the workspace TypeScript version (see "Editor run") |
 | 2 | Undoing clears it | PASS: `(none)` | **NOT RUN** |
-| 3 | Two siblings with the same name: red squiggle on the second | PASS: `[scene-lint 90001 error] "name: \"Ball\"" "Duplicate sibling name "Ball"."`, start = `lastIndexOf`, not `indexOf` | **NOT RUN** |
-| 4 | Normal TS errors in the same file still show | PASS: `[ts 2820 error] "texture" "Type '"res://art/bal.png"' is not assignable to type 'TexturePath \| undefined'. Did you mean '"res://art/ball.png"'?"` listed together with the scene-lint error | **NOT RUN** |
-| 5 | A child replaced by a function call: single "not statically analyzable" diagnostic, editor keeps working | PASS: one `[scene-lint 90002 warning] "makeWall()" "scene-lint: file is not statically analyzable: child is not an object literal (...)"`, plus the normal `[ts 2304] "makeWall" Cannot find name`; the server answered the next request; restoring cleared it | **NOT RUN** |
+| 3 | Two siblings with the same name: red squiggle on the second | PASS: `[scene-lint 90001 error] "name: \"Ball\"" "Duplicate sibling name "Ball"."`, start = `lastIndexOf`, not `indexOf` | **PASS (by hand, by the user)**: red squiggle on the duplicate sibling. A first attempt renamed the ROOT to "Ball" (parent and child, not siblings) and correctly showed nothing |
+| 4 | Normal TS errors in the same file still show | PASS: `[ts 2820 error] "texture" "Type '"res://art/bal.png"' is not assignable to type 'TexturePath \| undefined'. Did you mean '"res://art/ball.png"'?"` listed together with the scene-lint error | **PASS (by hand, by the user)**: the TypeScript error shows alongside |
+| 5 | A child replaced by a function call: single "not statically analyzable" diagnostic, editor keeps working | PASS: one `[scene-lint 90002 warning] "makeWall()" "scene-lint: file is not statically analyzable: child is not an object literal (...)"`, plus the normal `[ts 2304] "makeWall" Cannot find name`; the server answered the next request; restoring cleared it | **PASS (by hand, by the user)**: `makeWall` is red (TypeScript's own "Cannot find name"); hovering the `()` shows scene-lint's warning. Whether typing stayed responsive and whether restoring cleared it were not reported |
 | 6 | Deliberate throw inside the plugin: normal TS errors still work; record the log | PASS: TS error still reported, zero scene-lint output. Log line: `Info 62 [21:24:46.987] scene-lint: error while linting <poc4>/sample/level.def.ts, falling back to normal diagnostics: Error: deliberate test failure` (a stack follows it in the log); the server kept answering requests | **NOT RUN** |
 | 7 | Files not matching `*.def.ts` unaffected; editor feels no slower | PASS for "unaffected": `other.ts` gets only `[ts 2322] "answer"`, and the log has no `linted ...other.ts` line. "Feels no slower" is **not established**: see timing below | **NOT RUN** |
 
@@ -114,7 +116,29 @@ I did not measure a large `.def.ts`. Real typing latency in an editor was not me
 5. **Test hook:** `SCENE_LINT_DEBUG_THROW=1` in the tsserver's environment makes the plugin throw. It's read in production code; remove or gate it if you don't want that.
 6. **Tests use a real tsserver process** and the tsserver protocol, not a mock.
 
-## NOT RUN: the editor checks, for you to do by hand
+## Editor run (by hand, in Cursor)
+
+What it took to get the plugin loaded in a real editor, in the order it went wrong:
+
+1. **Only "built-in" or "TypeScript 7" was offered**, no workspace version. The user's global Cursor settings had
+   `"typescript.experimental.useTsgo": true`, which turns on TypeScript 7. Cursor then reports
+   `TypeScript server plugins from the "ms-vscode.vscode-typescript-tslint-plugin" extension will not be loaded because TypeScript 7 is enabled globally.`
+   With TS 7, tsserver plugins do not load at all. The setting is window-scoped, so a workspace setting can override it,
+   but in practice the user's normal window kept showing the message.
+2. **`.vscode/settings.json` in this folder** now sets `useTsgo` to false, `typescript.tsserver.pluginPaths: ["."]` (verified
+   in a simulated tsserver: each probe location D is searched as `D/node_modules/<plugin name>`), and Cursor itself added
+   `js/ts.tsdk.path: node_modules/typescript/lib` when the workspace version was selected.
+3. **Clean profile.** A separate Cursor profile (no TS 7 setting, none of the user's extensions) was started with
+   `Cursor --user-data-dir ~/.cc-poc4/user --extensions-dir ~/.cc-poc4/ext --new-window pocs/poc4-plugin`. It only started
+   after the user's own Cursor was closed. The first attempts from inside the agent's scratch folder died with
+   `listen EINVAL ... 3.22-main.sock is longer than 103 chars`: the profile path must be short.
+4. **Result:** after the user changed the TypeScript version (to the workspace one), the squiggles appeared. I did not
+   observe which of `pluginPaths` and the workspace version was the deciding one: both were in place by then.
+   To clean up: close that window and delete `~/.cc-poc4`.
+
+Not run in the editor: criterion 2 (undo clears), 6 (throw) and 7 (feel).
+
+## NOT RUN: the remaining editor steps, for you to do by hand
 
 1. `cd pocs/poc4-plugin && bun install && bun run build`.
 2. Open the folder `pocs/poc4-plugin` in Cursor/VS Code (so `node_modules/typescript` is at the workspace root).
