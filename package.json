@@ -1,0 +1,13 @@
+{
+  "name": "poc1-registry",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "gen": "bun tools/gen-registry.ts sample",
+    "watch": "bun tools/gen-registry.ts sample --watch",
+    "check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "~5.9"
+  }
+}
