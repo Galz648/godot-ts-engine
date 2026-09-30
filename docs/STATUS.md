@@ -12,8 +12,8 @@ cleanly, and write down where we stand.** So most of the pipeline is deliberatel
 | 3 | Emitter uses it | `packages/emitter` | **Integrated** | `cd packages/emitter && bun run emit` (prints `unchanged`: output identical to before the change) |
 | 4 | Path registry | `packages/registry` | Standalone, **held**. Usable by hand today: see `USING-THE-REGISTRY.md` | `cd packages/registry && bun run gen && bun run check`; `cd packages/scene && bun run demo:registry` |
 | 5 | Editor plugin | `packages/lint-plugin` | Standalone, **held** | `cd packages/lint-plugin && bun run test` |
-| 6 | One `build` command | (none yet) | Not started, held | |
-| 7 | Proof on a real scene (Pong) | (none yet) | Not started, held | |
+| 6 | One `build` command | (none yet) | A minimal two-step version exists in the game repo as `npm run scenes:pong` (validate, then emit). A real engine command is held. | `npm run scenes:pong` in the game repo |
+| 7 | Proof on a real scene (Pong) | game repo `scene-defs/` | **Done**: generated scene identical to the hand-made one in Godot (see `PONG-PROOF.md`). Found and fixed one real bug (`scriptProps`). | `npm run scenes:pong`, then the dump and simulation in `PONG-PROOF.md` |
 
 Layers 1-3 together: `cd packages/scene && bun run demo` passes **one tree** to the validator and the emitter. The
 good tree gives 0 findings and is written as a 4-node scene; the same tree minus its collision shape gives 1 validator
@@ -35,8 +35,7 @@ warning and is still written (the emitter trusts its input, by design).
 | --- | --- | --- |
 | Registry types in the scene type | The registry is generated per game; the engine cannot import a game's file. Needs a design choice (the game passes its types in, or the engine reads them from a known path). | Decide the hand-over mechanism, then a small change and a test |
 | Plugin runs the real validator | The plugin reads a top-level `texture` field that the shared type does not have (it is `props.texture: { ext }` now), and it only understands plain literals. It also still calls a two-rule stub. | Rework the plugin's reader for `props`, supply the validator the class data, re-run the editor checks |
-| `build` command | Only useful once the pieces above exist; today it would just call two functions in a row. | Wait for 4 and 5, or build a minimal validate-then-emit command on its own |
-| Pong proof | The real test, but it will expose what the emitter lacks (Control offsets, theme overrides, etc.). | Do after the above |
+| `build` command | Only useful once the pieces above exist; today it would just call two functions in a row. The game repo already has that as an npm script. | Wait for 4 and 5, or build a minimal validate-then-emit command on its own |
 
 ## Decisions that shape this
 

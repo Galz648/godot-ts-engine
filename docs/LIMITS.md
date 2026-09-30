@@ -60,6 +60,10 @@ squiggles. That is the trade-off, and it may change if TypeScript 7 ever support
   per class, with no exported list; each extra one must be written and checked by hand. The "Sprite2D needs a texture"
   rule is ours, not Godot's (Godot does not warn about it).
 - **Class data is from one Godot version (4.7.2).** Regenerate it for another version. Classes from addons are unknown to it.
+- **Script variables must go in `scriptProps`.** Godot silently ignores a script's own variables (like an exported
+  `is_player`) if they are written before the script is attached. The emitter writes `scriptProps` after the `script` line;
+  put such values there, not in `props`. Nothing checks the variable names, and the compiler does not check keys of a
+  spread object (see `PONG-PROOF.md`).
 - **The emitter is deliberately small.** No instanced sub-scenes, no `uid://` references, no signal connections, no groups.
   Anything else has to go through `{ raw: "..." }`.
 - **Registry types are per game.** The path registry is generated from a game's files, so the engine cannot import it
