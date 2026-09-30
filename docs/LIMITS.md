@@ -12,26 +12,20 @@ The TypeScript file is the source of truth. The emitter has no idea what was in 
 
 1. Monday: you write `scene.def.ts` with a Ball and a Wall and run the emitter. `main.tscn` appears.
 2. Tuesday: you open `main.tscn` in Godot. You drag the Ball to a nicer position, add a `Timer` node, and save.
-   (What we tested: moving a node and saving. The file stayed valid and only the moved node's line changed. Adding
-   a new node in the editor was not tested; Godot would give it an id of its own.)
+   (Tested by hand in the Godot 4.7.2 editor, `MILESTONE-1.md`: moving a node, adding a Timer, a group, a rename, a
+   reorder. The file stayed valid; Godot also added a `unique_id` to every node and `uid`s to the header.)
 3. Wednesday: you rename the Wall in `scene.def.ts` and run the emitter again.
-4. The emitter rewrites the whole file from the TypeScript. **Your Ball position and the Timer are gone**, because they
-   were never in the TypeScript. Nothing warns you. The only trace is `git diff`.
+4. Run by hand, the emitter rewrites the whole file from the TypeScript. **Your Ball position and the Timer are gone**,
+   because they were never in the TypeScript.
 
-**Why.** Merging would mean reading the `.tscn` back and combining it with the TypeScript tree, which is a much bigger
-tool. The original plan called the emitter "one-shot scaffolding": run it when the structure changes, then work in Godot.
-That only holds if you do not re-run it over a scene you have edited.
+**Why.** Merging would mean reading the `.tscn` back and combining it with the TypeScript tree. A prototype of that exists
+(`packages/scene-sync`), and the measurements show the editor adds things the model cannot hold (groups, connections,
+instances), so it is **frozen**.
 
-**What to do: choose a policy per scene.**
-
-| Policy | Means | Good for |
-| --- | --- | --- |
-| **Generated** | The scene is only ever changed in TypeScript. Never save it from the Godot editor. Anything visual goes in the tree as `{ raw: "..." }` props. | Mostly-structure scenes: level skeletons, menu layouts |
-| **Scaffold once** | Emit it one time, then the Godot editor owns it. Never run the emitter on that file again. | Scenes you will tune by eye: art, animation, UI polish |
-| **Split** | A generated scene that instances editor-owned sub-scenes. | Best of both, but **the emitter cannot instance scenes yet** |
-
-**Not built, would help:** a safety check. Before overwriting, the emitter could compare the file on disk with what it
-wrote last time and refuse (or warn) if someone edited it. That is small; it just has not been done.
+**What we do: scaffold once** (decided 2026-10-01). `npm run build` rewrites a scene only while it is exactly what the build
+last wrote. On Wednesday it sees your Tuesday save and **skips** the scene ("owned by Godot"), without failing, so your edits
+survive; `npm run verify` skips it too. Changes to that scene from then on happen in Godot. `--force` regenerates it and
+throws the Godot edits away. Running the emitter directly (not through `npm run build`) has no guard: do not.
 
 ## 2. The editor squiggles need a specific TypeScript setup
 
@@ -69,7 +63,7 @@ squiggles. That is the trade-off, and it may change if TypeScript 7 ever support
 - **The emitter cannot share a resource between nodes.** 40 identical shapes become 40 resources. It works; it is bloat.
 - **The validator does not check file paths.** Only the typed registry vocabulary catches a wrong script or texture path.
 - **Registry keys can be renamed** when a same-named file appears elsewhere (`main` becomes `scriptsPongMain`). Code using the old key stops compiling.
-- **The emitter is deliberately small.** No instanced sub-scenes, no `uid://` references, no signal connections, no groups (found again in the Breakout proof: connect and group in code instead).
+- **The emitter is deliberately small, and frozen there.** No instanced sub-scenes, no `uid://` references, no signal connections, no groups (found again in the Breakout proof: connect and group in code instead, where tstogd types them, or add them in the editor after the scaffold).
   Anything else has to go through `{ raw: "..." }`.
 - **Connecting a signal in the Godot editor writes into a generated script.** Godot adds the handler stub to the `.gd` file,
   which tstogd overwrites on the next convert; the connection then points at a missing method. Write the handler in the

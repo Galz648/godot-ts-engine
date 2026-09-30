@@ -15,7 +15,7 @@ Tagged `milestone-1` in both repos: `godot-ts-engine` (this one) and `godot-ts-p
 - **Game repo renamed** to `godot-ts-playground`.
 - **`sprite-needs-texture` stays** (a warning: it fires on neither real scene, and its message now says "unless a script sets one"). It is our rule, not Godot's.
 - **Registry keys** (what it is): the registry names each file by its file name (`Scripts.paddle`). When two files share a name, the keys change (`Scripts.main` became `scriptsPongMain` when Breakout added a `main.gd`) and old code stops compiling. The open choice is to always include the folder (`scriptsPongMain`) so keys never change, at the cost of longer names. Not decided.
-- **Generated or editor-owned scenes: undecided.** The user's leaning: generate a scene once from the IDE, then work in the IDE for scripts. The decision waits on how hard syncing is (below).
+- **Generated or editor-owned scenes: decided 2026-10-01, scaffold once** (after the measurements below). A scene is generated from TypeScript until it is first saved in Godot; then Godot owns it, and the build and `verify` skip it. Scripts stay in TypeScript. Sync and new emitter features are frozen (`DECISIONS.md`).
 
 ## Sync analysis so far (`packages/scene-sync`, a prototype)
 
@@ -77,4 +77,4 @@ From the game repo root, `mkdir -p scenes/scratch && cp scenes/pong/main.generat
 
 ## What is left
 
-See `REMAINING.md`. Next in line: the scene policy decision (the measurements above are in), then the registry key choice.
+See `REMAINING.md`. The scene policy is decided (scaffold once). Next in line: the registry key choice.

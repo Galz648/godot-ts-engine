@@ -1,4 +1,5 @@
-// The main scene, described in TypeScript. `npm run build` checks it and writes scenes/main.tscn.
+// The main scene, described in TypeScript. `npm run build` checks it and writes scenes/main.tscn, until you first save
+// that scene in Godot; from then on Godot owns it and this file no longer applies (scaffold once, see README.md).
 // Node classes can only be real Godot classes; script and texture paths only ones the registry found (registry.gen.ts).
 import type { SceneNode } from "../engine/packages/scene/src/index.ts";
 import type { NodeType } from "../engine/packages/validator/src/node-types.gen.ts";

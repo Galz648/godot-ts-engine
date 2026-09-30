@@ -19,7 +19,7 @@ Done and checked (run `./check-all.sh` in this repo, and `npm run verify:breakou
 
 | # | Question | Why it matters | Notes |
 | --- | --- | --- | --- |
-| 1 | Per scene: **generated** (only edited in TypeScript), **scaffold once** (then owned by the Godot editor), or **split**? | The emitter overwrites; editor edits are lost on the next emit. | `LIMITS.md` section 1. Split needs instancing, which does not exist yet. |
+| 1 | ~~Per scene: generated, scaffold once, or split?~~ | **Scaffold once** (user, 2026-10-01). The build and `verify` skip a scene once it is saved in Godot. | `DECISIONS.md`, `LIMITS.md` section 1. |
 | 2 | Should registry keys **always include the folder** (`scriptsPongMain`) so they never change? | Adding `breakout/main.gd` renamed Pong's `Scripts.main` and broke its definition. | Breakout finding 1. Costs longer names everywhere. |
 | 3 | ~~Keep the validator's `sprite-needs-texture` rule?~~ | **Kept** (2026-09-30): a warning, our rule, not Godot's. | See `DECISIONS.md`. |
 | 4 | ~~The GodotJS to tstogd switch~~ | **No such migration exists** (user, 2026-09-30). Removed. | |
@@ -33,12 +33,14 @@ Done and checked (run `./check-all.sh` in this repo, and `npm run verify:breakou
 2. ~~Editor plugin on the real validator and the shared type~~ **Reworked 2026-09-30** (tolerant of helpers and loops; real validator). Seen working in the Cursor editor (2026-09-30). Still to do: the "feels no slower" check on a big scene file.
 3. ~~A `build` command~~ **Done (minimal, 2026-09-30):** `packages/build`, see `DAILY-WORKFLOW.md`. Still to do for it: a `--only <scene>` option, and running the registry step only when files changed.
 4. ~~Move the verifier into the engine~~ **Done 2026-09-30:** `packages/verify` (`verify.ts` checks every `scene-defs/*.def.ts`; on the playground: Breakout 706 checks, Pong 41, 0 problems; a changed prop and an extra node are caught). Still to do: point the playground's `verify:*` scripts at it and delete its copies in `scene-defs/verify/` (`sim-breakout.gd` stays, it is Breakout's).
-5. **Game template** ~~(new)~~ **Done 2026-09-30:** `packages/create`. End-to-end check, as run: clone this repo to `/tmp`, commit the working tree there, then `bun <clone>/packages/create/src/create.ts my-game --engine-url <clone>`; then in the game `npm run check`, the editor plugin's `test/check-file.mjs`, and a headless run holding the right arrow (the square moves 174 px right, 0 down). **Released as `v0.1.0`** and checked from GitHub: `npx github:Galz648/godot-ts-engine#v0.1.0 my-game --name "My Game" --engine-ref v0.1.0` (full run: build, import, verify, the square moves). Still to do: GitHub Actions for new games (left out on purpose).
+5. **Game template** ~~(new)~~ **Done 2026-09-30:** `packages/create`. End-to-end check, as run: clone this repo to `/tmp`, commit the working tree there, then `bun <clone>/packages/create/src/create.ts my-game --engine-url <clone>`; then in the game `npm run check`, the editor plugin's `test/check-file.mjs`, and a headless run holding the right arrow (the square moves 174 px right, 0 down). **Released as `v0.1.0`** and checked from GitHub: `npx github:Galz648/godot-ts-engine#v0.1.0 my-game --name "My Game" --engine-ref v0.1.0` (full run: build, import, verify, the square moves). **`v0.1.1`** (2026-10-01): scaffold once (the build and `verify` skip scenes saved in Godot), the registry lists scenes created in the same build, the workflow in `DAILY-WORKFLOW.md` and the game's README. Still to do: GitHub Actions for new games (left out on purpose).
 
-**B. Emitter features Breakout needed and could not have** (each one is a worked-around gap, not a guess)
+**B. Emitter features Breakout needed and could not have. FROZEN (2026-10-01, scaffold once):** do these in scripts or in
+the editor after the scaffold. Kept here as the list to come back to.
 
 - Share one resource between nodes (40 identical brick shapes became 40 resources).
 - Groups, signal connections (`[connection]`), instanced scenes, `uid://` references.
+- The sync prototype (`packages/scene-sync`: read back, merge, analyzer) is frozen with them.
 - ~~An overwrite guard~~ **Done** (in `packages/build`, not in the emitter itself): a scene changed since the tool wrote it is not overwritten without `--force`.
 
 **C. Validator**

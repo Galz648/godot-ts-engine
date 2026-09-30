@@ -18,9 +18,11 @@ each package runs on its own, against stubs of the others (see `docs/DECISIONS.m
 
 ## Start a new game
 
-    npx github:Galz648/godot-ts-engine#v0.1.0 my-game --name "My Game" --engine-ref v0.1.0
+**How to work with it, in one page: [`docs/DAILY-WORKFLOW.md`](docs/DAILY-WORKFLOW.md)** (what works, the workflow, what does not).
 
-Use this form, with the version in both places: `#v0.1.0` picks the template, `--engine-ref v0.1.0` picks the engine the
+    npx github:Galz648/godot-ts-engine#v0.1.1 my-game --name "My Game" --engine-ref v0.1.1
+
+Use this form, with the version in both places: `#v0.1.1` picks the template, `--engine-ref v0.1.1` picks the engine the
 game is pinned to, and the two must match. Without them you get the template and engine from `main`, which can change
 under you. Releases: [github.com/Galz648/godot-ts-engine/releases](https://github.com/Galz648/godot-ts-engine/releases).
 

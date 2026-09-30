@@ -4,9 +4,12 @@
 // 1. tstogd convert        TypeScript scripts -> GDScript (skipped if the project has no tstogd.json)
 // 2. registry              regenerate scene-defs/registry.gen.ts (paths as types)
 // 3. scenes                for each scene-defs/*.def.ts: validate (errors stop the build), then write its `output` scene
-// 4. tstogd convert again  only if a scene changed, so scripts see the new scene's typings
+// 4. registry again        only if a scene was created, so it is listed
+// 5. tstogd convert again  only if a scene changed, so scripts see the new scene's typings
 //
 // A definition file `export default`s the scene tree and `export const output = "scenes/x.tscn"`.
+// Scaffold once: a scene is rewritten only while it is exactly what this tool last wrote. Once it is saved in Godot, the
+// build skips it (Godot owns it) and says so; that is not an error.
 // --force  overwrite a scene even if it was changed outside this tool (see guard.ts)
 // --watch  keep running: rebuild scenes when a definition changes; tstogd and the registry run in watch mode too
 
@@ -57,9 +60,13 @@ async function buildScenes(): Promise<{ failed: boolean; changed: boolean }> {
       const target = resolve(ROOT, output);
       const existing = existsSync(target) ? readFileSync(target, "utf8") : null;
       const decision = decideWrite({ existing, lastHash: state[output], next: text, force });
-      if (decision === "blocked-edited" || decision === "blocked-unknown") {
-        const why = decision === "blocked-edited" ? "was changed after this tool wrote it (edited in Godot?)" : "exists but this tool never wrote it";
-        say("scenes", `${name}: NOT WRITTEN: ${output} ${why}. Move your edits into ${file}, or rerun with --force to overwrite.`);
+      if (decision === "blocked-edited") {
+        // scaffold once: a scene saved in Godot after we wrote it belongs to Godot from then on. Not an error.
+        say("scenes", `${name}: owned by Godot (saved there since this tool wrote ${output}); skipped. Delete ${file} when you are done with it, or --force to regenerate.`);
+        continue;
+      }
+      if (decision === "blocked-unknown") {
+        say("scenes", `${name}: NOT WRITTEN: ${output} exists but this tool never wrote it. Pick another \`output\`, or rerun with --force to overwrite.`);
         failed = true; continue;
       }
       if (decision !== "unchanged") { mkdirSync(dirname(target), { recursive: true }); writeFileSync(target, text); changed = true; }
@@ -102,6 +109,12 @@ if (!failed) {
   process.stdout.write(s.stdout);
   if (s.status !== 0) failed = true;
   const changed = /: (create|overwrite) ->/.test(s.stdout);
+  if (!failed && /: create ->/.test(s.stdout)) {
+    // a new scene file is a new registry entry
+    const again = spawnSync(process.execPath, [REGISTRY_TOOL, ROOT, "--out", join(DEFS, "registry.gen.ts")], { cwd: ROOT, encoding: "utf8" });
+    if (again.status !== 0) { say("registry", `again, for new scenes: FAILED`); failed = true; }
+    else say("registry", `again, for new scenes: ${again.stdout.startsWith("unchanged") ? "unchanged" : "regenerated"}`);
+  }
   if (hasTstogd && !failed && (changed || !firstConvertOk)) {
     const c = convert();
     say("convert", `again, for new typings: ${c.ok ? "ok" : "ISSUES"} (${c.note})`);

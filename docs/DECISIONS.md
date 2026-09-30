@@ -40,6 +40,18 @@ Who decided is marked on each line.
   TypeScript extensions only. No keybindings, no personal settings, no machine paths. `launch.sh` runs it beside the normal Cursor.
   The profile forces TypeScript 7 off because it disables every tsserver plugin, which the scene-lint plugin needs.
 
+## Scope: scaffold once (user, 2026-10-01)
+
+- **Scene policy: scaffold once.** A scene definition writes its `.tscn`, and the build keeps rewriting it only while the file is
+  exactly what the build last wrote. Once the scene is saved in the Godot editor, Godot owns it: the build and `verify` skip it
+  and say so (not an error); `--force` regenerates. No merging, no syncing editor changes back. Why: the measurements in
+  `MILESTONE-1.md` show every editor save adds things the model cannot hold, so fighting the editor is not worth it now.
+- **Kept and worked on:** the registry (typed paths for scene definitions), the emitter and validator as the scaffold step,
+  `verify`, the game template, and the editor squiggles. The squiggles cost nothing extra: tstogd's own editor plugin needs the
+  same TypeScript 5.9 setup with TypeScript 7 off.
+- **Frozen (kept in the repo, not worked on):** `packages/scene-sync` (read back, merge, analyzer) and new emitter features
+  (groups, signal connections, instanced scenes, shared resources). Do those in scripts (tstogd) or in the editor.
+
 ## Integration pace
 
 - **Go slowly; integrate only the layers that fit together cleanly, and document where we are** (user, 2026-09-30).
@@ -56,3 +68,5 @@ Who decided is marked on each line.
 | Class hierarchy in the validator and types | done (validator 40 tests; class data from Godot 4.7.2) |
 | Shared `SceneNode` type | done (`packages/scene`), used by the validator and the emitter |
 | Cursor profile | done, in `tools/cursor-profile/` |
+| Scene policy | decided 2026-10-01: scaffold once; the build and `verify` skip scenes saved in Godot |
+| Sync, new emitter features | frozen 2026-10-01 |
