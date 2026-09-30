@@ -66,7 +66,10 @@ squiggles. That is the trade-off, and it may change if TypeScript 7 ever support
   `is_player`) if they are written before the script is attached. The emitter writes `scriptProps` after the `script` line;
   put such values there, not in `props`. Nothing checks the variable names, and the compiler does not check keys of a
   spread object (see `PONG-PROOF.md`).
-- **The emitter is deliberately small.** No instanced sub-scenes, no `uid://` references, no signal connections, no groups.
+- **The emitter cannot share a resource between nodes.** 40 identical shapes become 40 resources. It works; it is bloat.
+- **The validator does not check file paths.** Only the typed registry vocabulary catches a wrong script or texture path.
+- **Registry keys can be renamed** when a same-named file appears elsewhere (`main` becomes `scriptsPongMain`). Code using the old key stops compiling.
+- **The emitter is deliberately small.** No instanced sub-scenes, no `uid://` references, no signal connections, no groups (found again in the Breakout proof: connect and group in code instead).
   Anything else has to go through `{ raw: "..." }`.
 - **Registry types are per game.** The path registry is generated from a game's files, so the engine cannot import it
   directly. How the engine's scene type learns a game's paths is the next integration step.

@@ -1,76 +1,56 @@
-# Limits, in plain language
+# Where we are
 
-Things these tools cannot do, or only do with a catch. Each one says what you would actually see, why it is that way,
-and what to do about it. Written 2026-09-30 after the four proofs of concept.
+Last updated 2026-09-30. The rule for now, from the user: **go slowly; integrate only the layers that fit together
+cleanly, and write down where we stand.** So most of the pipeline is deliberately *not* joined up yet.
 
-## 1. The emitter overwrites; it does not merge ("two writers")
+**What is left, in order, with the decisions only the owner can make: [`REMAINING.md`](REMAINING.md).** One command runs
+every check: `./check-all.sh`.
 
-**The idea.** When you describe a scene in TypeScript and run the emitter, it writes the whole `.tscn` file from scratch.
-The TypeScript file is the source of truth. The emitter has no idea what was in the file before.
+## The layers
 
-**A story that shows the problem.**
+| # | Layer | Package | State | Evidence (run these) |
+| --- | --- | --- | --- | --- |
+| 1 | Shared scene type | `packages/scene` | **Integrated** | `cd packages/scene && bun run check && bun run check:examples` (expected type errors, exactly: 8 in one file, 3 in the registry example) |
+| 2 | Validator uses it | `packages/validator` | **Integrated** | `cd packages/validator && npm test` (40 pass) |
+| 3 | Emitter uses it | `packages/emitter` | **Integrated** | `cd packages/emitter && bun run emit` (prints `unchanged`: output identical to before the change) |
+| 4 | Path registry | `packages/registry` | Standalone, **held**. Usable by hand today: see `USING-THE-REGISTRY.md` | `cd packages/registry && bun run gen && bun run check`; `cd packages/scene && bun run demo:registry` |
+| 5 | Editor plugin | `packages/lint-plugin` | **Reworked**: real validator, shared type, tolerant of helpers and loops. Checked against a real tsserver and on the real Pong/Breakout definitions, and **seen working in the Cursor editor** (user, 2026-09-30: no squiggles on a clean file, class typo, duplicate names, undo). Sees only the literal parts of a definition (`LIMITS.md`). | `cd packages/lint-plugin && bun run test`; `node test/check-file.mjs` |
+| 6 | One `build` command | `packages/build` | **Done (minimal)**: convert, registry, validate, emit, convert again; `--watch`; an overwrite guard. See `DAILY-WORKFLOW.md`. | `cd packages/build && bun run test`; `npm run build` in the game repo |
+| 7b | Second proof: a bigger scene (Breakout, 142 nodes) | game repo `scene-defs/` | **Done**: 706 checks against the tree, 0 problems; the real physics plays (see `BREAKOUT-PROOF.md`). Found 5 things, no engine bug. | `npm run verify:breakout`, `npm run sim:breakout` |
+| 7 | Proof on a real scene (Pong) | game repo `scene-defs/` | **Done**: generated scene identical to the hand-made one in Godot (see `PONG-PROOF.md`). Found and fixed one real bug (`scriptProps`). | `npm run scenes:pong`, then the dump and simulation in `PONG-PROOF.md` |
 
-1. Monday: you write `scene.def.ts` with a Ball and a Wall and run the emitter. `main.tscn` appears.
-2. Tuesday: you open `main.tscn` in Godot. You drag the Ball to a nicer position, add a `Timer` node, and save.
-   (What we tested: moving a node and saving. The file stayed valid and only the moved node's line changed. Adding
-   a new node in the editor was not tested; Godot would give it an id of its own.)
-3. Wednesday: you rename the Wall in `scene.def.ts` and run the emitter again.
-4. The emitter rewrites the whole file from the TypeScript. **Your Ball position and the Timer are gone**, because they
-   were never in the TypeScript. Nothing warns you. The only trace is `git diff`.
+Layers 1-3 together: `cd packages/scene && bun run demo` passes **one tree** to the validator and the emitter. The
+good tree gives 0 findings and is written as a 4-node scene; the same tree minus its collision shape gives 1 validator
+warning and is still written (the emitter trusts its input, by design).
 
-**Why.** Merging would mean reading the `.tscn` back and combining it with the TypeScript tree, which is a much bigger
-tool. The original plan called the emitter "one-shot scaffolding": run it when the structure changes, then work in Godot.
-That only holds if you do not re-run it over a scene you have edited.
+## What "integrated" means here, exactly
 
-**What to do: choose a policy per scene.**
+- There is one `SceneNode` type, in `packages/scene/src/index.ts`. The validator and the emitter import it; neither
+  defines its own any more.
+- The type takes a "vocabulary" (which node classes, script paths and texture paths a tree may name). Plain strings by
+  default. A game can narrow it with generated types, and a narrow tree is always accepted where the plain one is expected.
+- It is only **types**. There is no runtime link between the packages: the validator and the emitter do not call each
+  other. They happen to accept the same data.
+- Nothing runs them in order yet. A person (or the demo) calls the validator, then the emitter.
 
-| Policy | Means | Good for |
+## Why the rest is held
+
+| Held | Why it is not clean yet | What it would need |
 | --- | --- | --- |
-| **Generated** | The scene is only ever changed in TypeScript. Never save it from the Godot editor. Anything visual goes in the tree as `{ raw: "..." }` props. | Mostly-structure scenes: level skeletons, menu layouts |
-| **Scaffold once** | Emit it one time, then the Godot editor owns it. Never run the emitter on that file again. | Scenes you will tune by eye: art, animation, UI polish |
-| **Split** | A generated scene that instances editor-owned sub-scenes. | Best of both, but **the emitter cannot instance scenes yet** |
+| Registry types in the scene type | The registry is generated per game; the engine cannot import a game's file. Needs a design choice (the game passes its types in, or the engine reads them from a known path). | Decide the hand-over mechanism, then a small change and a test |
 
-**Not built, would help:** a safety check. Before overwriting, the emitter could compare the file on disk with what it
-wrote last time and refuse (or warn) if someone edited it. That is small; it just has not been done.
+## Decisions that shape this
 
-## 2. The editor squiggles need a specific TypeScript setup
+See `DECISIONS.md`. In short: switch the game to tstogd; the `extends` check comes later; the tools live in this repo,
+used by the game as a submodule; integrate slowly.
 
-**The idea.** The red and yellow squiggles in the editor come from a TypeScript "language service plugin". The editor
-only loads such a plugin when it uses **TypeScript 5.9 from the project's `node_modules`**, and only while TypeScript 7
-(the "native preview", setting `typescript.experimental.useTsgo`) is **off**.
+## Known limits
 
-**What you would actually see.** With TypeScript 7 switched on globally, the plugin never loads. The editor shows:
-`TypeScript server plugins from the "ms-vscode.vscode-typescript-tslint-plugin" extension will not be loaded because
-TypeScript 7 is enabled globally.` Note that the message names a different, unrelated extension, which makes it easy to
-misread, but it is the same cause: no plugin of any kind loads. There are no squiggles from our plugin. That is exactly
-what happened to you. It worked once we used a clean profile and picked "Use Workspace Version".
+See `LIMITS.md`: the emitter overwrites instead of merging; the editor squiggles need workspace TypeScript 5.9 with
+TypeScript 7 off; and a list of smaller ones.
 
-**What you do not lose.** Ordinary TypeScript errors still show, and the validator runs in the build step and finds the
-same problems there. The plugin is live feedback while typing. It is not where the rules are enforced.
+## Not checked anywhere yet
 
-**What to do.** Use `tools/cursor-profile/launch.sh` (TypeScript 7 off, workspace TypeScript offered), or turn TypeScript 7
-off in your own settings while working on scene files. Anyone who wants TypeScript 7 everywhere gives up the live
-squiggles. That is the trade-off, and it may change if TypeScript 7 ever supports plugins (we do not know).
-
-## 3. Smaller limits we know about
-
-- **The plugin reads plain object literals only.** A function call, spread or variable inside the scene tree makes it
-  say "not statically analyzable" and pause checking, rather than guess.
-- **Only some of Godot's warnings exist here.** We cover a handful of collision-shape rules. Godot has many more, written
-  per class, with no exported list; each extra one must be written and checked by hand. The "Sprite2D needs a texture"
-  rule is ours, not Godot's (Godot does not warn about it).
-- **Class data is from one Godot version (4.7.2).** Regenerate it for another version. Classes from addons are unknown to it.
-- **Script variables must go in `scriptProps`.** Godot silently ignores a script's own variables (like an exported
-  `is_player`) if they are written before the script is attached. The emitter writes `scriptProps` after the `script` line;
-  put such values there, not in `props`. Nothing checks the variable names, and the compiler does not check keys of a
-  spread object (see `PONG-PROOF.md`).
-- **The emitter cannot share a resource between nodes.** 40 identical shapes become 40 resources. It works; it is bloat.
-- **The validator does not check file paths.** Only the typed registry vocabulary catches a wrong script or texture path.
-- **Registry keys can be renamed** when a same-named file appears elsewhere (`main` becomes `scriptsPongMain`). Code using the old key stops compiling.
-- **The emitter is deliberately small.** No instanced sub-scenes, no `uid://` references, no signal connections, no groups (found again in the Breakout proof: connect and group in code instead).
-  Anything else has to go through `{ raw: "..." }`.
-- **Registry types are per game.** The path registry is generated from a game's files, so the engine cannot import it
-  directly. How the engine's scene type learns a game's paths is the next integration step.
-- **Godot exits with status 0 even when a scene fails to load.** Anything automated must read Godot's output, not its exit code.
-- **Windows was never run.** Paths are normalised in the code, but nothing was tried there.
-- **A fresh Godot project must be imported once** (`godot --headless --import`) before textures load.
+- The shared type in the editor (only `tsc` was run).
+- Whether the 253-member node-class union slows the editor when a scene file is large.
+- Windows.
