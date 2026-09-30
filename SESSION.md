@@ -57,7 +57,7 @@ the test confirms the files on disk are byte-identical afterwards, so these are 
 | 4 | Normal TS errors in the same file still show | PASS: `[ts 2820 error] "texture" "Type '"res://art/bal.png"' is not assignable to type 'TexturePath \| undefined'. Did you mean '"res://art/ball.png"'?"` listed together with the scene-lint error | **PASS (by hand, by the user)**: the TypeScript error shows alongside |
 | 5 | A child replaced by a function call: single "not statically analyzable" diagnostic, editor keeps working | PASS: one `[scene-lint 90002 warning] "makeWall()" "scene-lint: file is not statically analyzable: child is not an object literal (...)"`, plus the normal `[ts 2304] "makeWall" Cannot find name`; the server answered the next request; restoring cleared it | **PASS (by hand, by the user)**: `makeWall` is red (TypeScript's own "Cannot find name"); hovering the `()` shows scene-lint's warning. Whether typing stayed responsive and whether restoring cleared it were not reported |
 | 6 | Deliberate throw inside the plugin: normal TS errors still work; record the log | PASS: TS error still reported, zero scene-lint output. Log line: `Info 62 [21:24:46.987] scene-lint: error while linting <poc4>/sample/level.def.ts, falling back to normal diagnostics: Error: deliberate test failure` (a stack follows it in the log); the server kept answering requests | **PASS (by hand, by the user, log checked by the agent)**: started Cursor with `SCENE_LINT_DEBUG_THROW=1`. Cursor's own tsserver log (`~/.cc-poc4/user/logs/.../tsserver.log`, TypeScript 5.9.3) contains `scene-lint: error while linting .../sample/level.def.ts, falling back to normal diagnostics: Error: deliberate test failure` three times (stack from `proxy.getSemanticDiagnostics`, `plugins/scene-lint/dist/src/index.js:136`). On screen the user confirmed, with "I think so", that the TypeScript error stayed and the scene-lint warning disappeared |
-| 7 | Files not matching `*.def.ts` unaffected; editor feels no slower | PASS for "unaffected": `other.ts` gets only `[ts 2322] "answer"`, and the log has no `linted ...other.ts` line. "Feels no slower" is **not established**: see timing below | **NOT RUN** |
+| 7 | Files not matching `*.def.ts` unaffected; editor feels no slower | PASS for "unaffected": `other.ts` gets only `[ts 2322] "answer"`, and the log has no `linted ...other.ts` line. "Feels no slower" is **not established**: see timing below | **NOT RUN by hand** (user chose to stop). Objective part measured on a 4,508-line file: no measurable cost, see "Editor run" item 6 |
 
 Other automated checks that passed: sample file starts with no diagnostics; files on disk never modified; the plugin was loaded by
 tsserver (`scene-lint: create` in the log); server answers requests after a function-call child and after a throw.
@@ -141,7 +141,21 @@ What it took to get the plugin loaded in a real editor, in the order it went wro
    `"typescript.tsserver.log": "verbose"` in that profile's user settings: see the table row.
    To clean up: close that window and delete `~/.cc-poc4`.
 
-Not run in the editor: criterion 2 (undo clears) and 7 (feel).
+6. **Large-file benchmark (criterion 7, objective half).** A generated `sample/large.def.ts` (4,508 lines, about 1,500 nodes:
+   500 bodies, each with a shape and a sprite) was opened in a real tsserver (TypeScript 5.9.3) over its stdio protocol,
+   then edited 8 times, each edit followed by a diagnostics request. Median per edit plus re-check, two runs each:
+
+   | Case | No plugin | With plugin |
+   | --- | --- | --- |
+   | valid file | 57-59 ms | 56-57 ms |
+   | one duplicate name (plugin reports 1 `scene-lint` diagnostic) | 59-64 ms | 60-64 ms |
+
+   First open and worst edit were also within noise (first 63-67 ms in all cases; max 78-93 ms). The duplicate case proves the
+   plugin was active in the timing. Conclusion: no measurable cost at this size. The scripts were scratch files and are not
+   in the repo; the large file was deleted afterwards.
+
+Not run by hand in the editor (the user chose to stop here): criterion 2 (undo clears) and the "feels no slower" half of
+criterion 7. Criterion 2 passed at the tsserver level only.
 
 ## NOT RUN: the remaining editor steps, for you to do by hand
 
