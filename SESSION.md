@@ -21,8 +21,8 @@ character range works and where it breaks.
 
 - Plugin works end to end against a real `tsserver` (TypeScript 5.9.3): 16 automated checks, all PASS, run twice.
 - Every acceptance criterion was verified at the tsserver level. In the Cursor editor, criteria 1, 3, 4 and 5 were then
-  run by hand by the user and passed; criteria 2 (undo clears), 6 (deliberate throw) and 7 (feel / speed) are still NOT RUN
-  in the editor. See the table and "Editor run".
+  run by hand by the user and passed, and so did criterion 6 (deliberate throw); criteria 2 (undo clears) and
+  7 (feel / speed) are still NOT RUN in the editor. See the table and "Editor run".
 
 Run it yourself:
 
@@ -56,7 +56,7 @@ the test confirms the files on disk are byte-identical afterwards, so these are 
 | 3 | Two siblings with the same name: red squiggle on the second | PASS: `[scene-lint 90001 error] "name: \"Ball\"" "Duplicate sibling name "Ball"."`, start = `lastIndexOf`, not `indexOf` | **PASS (by hand, by the user)**: red squiggle on the duplicate sibling. A first attempt renamed the ROOT to "Ball" (parent and child, not siblings) and correctly showed nothing |
 | 4 | Normal TS errors in the same file still show | PASS: `[ts 2820 error] "texture" "Type '"res://art/bal.png"' is not assignable to type 'TexturePath \| undefined'. Did you mean '"res://art/ball.png"'?"` listed together with the scene-lint error | **PASS (by hand, by the user)**: the TypeScript error shows alongside |
 | 5 | A child replaced by a function call: single "not statically analyzable" diagnostic, editor keeps working | PASS: one `[scene-lint 90002 warning] "makeWall()" "scene-lint: file is not statically analyzable: child is not an object literal (...)"`, plus the normal `[ts 2304] "makeWall" Cannot find name`; the server answered the next request; restoring cleared it | **PASS (by hand, by the user)**: `makeWall` is red (TypeScript's own "Cannot find name"); hovering the `()` shows scene-lint's warning. Whether typing stayed responsive and whether restoring cleared it were not reported |
-| 6 | Deliberate throw inside the plugin: normal TS errors still work; record the log | PASS: TS error still reported, zero scene-lint output. Log line: `Info 62 [21:24:46.987] scene-lint: error while linting <poc4>/sample/level.def.ts, falling back to normal diagnostics: Error: deliberate test failure` (a stack follows it in the log); the server kept answering requests | **NOT RUN** |
+| 6 | Deliberate throw inside the plugin: normal TS errors still work; record the log | PASS: TS error still reported, zero scene-lint output. Log line: `Info 62 [21:24:46.987] scene-lint: error while linting <poc4>/sample/level.def.ts, falling back to normal diagnostics: Error: deliberate test failure` (a stack follows it in the log); the server kept answering requests | **PASS (by hand, by the user, log checked by the agent)**: started Cursor with `SCENE_LINT_DEBUG_THROW=1`. Cursor's own tsserver log (`~/.cc-poc4/user/logs/.../tsserver.log`, TypeScript 5.9.3) contains `scene-lint: error while linting .../sample/level.def.ts, falling back to normal diagnostics: Error: deliberate test failure` three times (stack from `proxy.getSemanticDiagnostics`, `plugins/scene-lint/dist/src/index.js:136`). On screen the user confirmed, with "I think so", that the TypeScript error stayed and the scene-lint warning disappeared |
 | 7 | Files not matching `*.def.ts` unaffected; editor feels no slower | PASS for "unaffected": `other.ts` gets only `[ts 2322] "answer"`, and the log has no `linted ...other.ts` line. "Feels no slower" is **not established**: see timing below | **NOT RUN** |
 
 Other automated checks that passed: sample file starts with no diagnostics; files on disk never modified; the plugin was loaded by
@@ -132,11 +132,16 @@ What it took to get the plugin loaded in a real editor, in the order it went wro
    `Cursor --user-data-dir ~/.cc-poc4/user --extensions-dir ~/.cc-poc4/ext --new-window pocs/poc4-plugin`. It only started
    after the user's own Cursor was closed. The first attempts from inside the agent's scratch folder died with
    `listen EINVAL ... 3.22-main.sock is longer than 103 chars`: the profile path must be short.
-4. **Result:** after the user changed the TypeScript version (to the workspace one), the squiggles appeared. I did not
-   observe which of `pluginPaths` and the workspace version was the deciding one: both were in place by then.
+4. **Result:** after the user changed the TypeScript version (to the workspace one), the squiggles appeared. The tsserver
+   log settles which mechanism loaded the plugin: `Enabling plugin scene-lint from candidate paths: .../typescript/lib/typescript.js/../../..`
+   followed by `scene-lint: create`, with `Version: 5.9.3`. That is the default lookup next to the workspace TypeScript, not
+   `pluginPaths`. So selecting the workspace TypeScript version is what matters; whether `pluginPaths` would also have
+   worked with the built-in TypeScript was not observed in the editor (it worked in a simulated tsserver).
+5. **Crash check (criterion 6)** was done in the same clean profile, restarted with `SCENE_LINT_DEBUG_THROW=1` and
+   `"typescript.tsserver.log": "verbose"` in that profile's user settings: see the table row.
    To clean up: close that window and delete `~/.cc-poc4`.
 
-Not run in the editor: criterion 2 (undo clears), 6 (throw) and 7 (feel).
+Not run in the editor: criterion 2 (undo clears) and 7 (feel).
 
 ## NOT RUN: the remaining editor steps, for you to do by hand
 
