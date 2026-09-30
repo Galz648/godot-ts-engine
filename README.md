@@ -12,7 +12,7 @@ each package runs on its own, against stubs of the others (see `docs/DECISIONS.m
 | `packages/validator` | Structural rules and Godot class hierarchy, human-written messages | `bun install && npm test` |
 | `packages/lint-plugin` | TypeScript language-service plugin: validator findings as editor squiggles | `bun install && bun run test` |
 
-**The Breakout proof (142 nodes): [`docs/BREAKOUT-PROOF.md`](docs/BREAKOUT-PROOF.md).** **The Pong proof: [`docs/PONG-PROOF.md`](docs/PONG-PROOF.md).** **Using the registry in a game: [`docs/USING-THE-REGISTRY.md`](docs/USING-THE-REGISTRY.md).** **Limits, in plain language: [`docs/LIMITS.md`](docs/LIMITS.md).** Read this before relying on the emitter or the editor plugin.
+**What is left: [`docs/REMAINING.md`](docs/REMAINING.md).** `./check-all.sh` runs every check. **The Breakout proof (142 nodes): [`docs/BREAKOUT-PROOF.md`](docs/BREAKOUT-PROOF.md).** **The Pong proof: [`docs/PONG-PROOF.md`](docs/PONG-PROOF.md).** **Using the registry in a game: [`docs/USING-THE-REGISTRY.md`](docs/USING-THE-REGISTRY.md).** **Limits, in plain language: [`docs/LIMITS.md`](docs/LIMITS.md).** Read this before relying on the emitter or the editor plugin.
 
 Each package has a `SESSION.md` with what was built, the commands run, findings and what was not verified.
 `docs/pocs/` has the original overview and handover specs.
