@@ -5,7 +5,9 @@
   "scripts": {
     "validate": "node tools/validate-scene.ts",
     "test": "node --test tools/validate-scene.test.ts",
-    "check": "tsc --noEmit"
+    "check": "tsc --noEmit",
+    "check:examples": "tsc --noEmit -p tsconfig.examples.json",
+    "gen-classes": "node tools/gen-classes.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.3",

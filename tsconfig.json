@@ -9,5 +9,6 @@
     "allowImportingTsExtensions": true,
     "types": ["node"]
   },
-  "include": ["tools", "sample"]
+  "include": ["tools", "sample", "src"],
+  "exclude": ["sample/*.example.ts"]
 }
