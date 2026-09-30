@@ -19,9 +19,8 @@ and never writes script bodies.
 
 ## Completed
 
-Checks 1, 2, 3, 6 and 7 passed as written. Check 4 (open in the editor) and check 5 (save from the editor)
-were NOT RUN through the editor GUI: no GUI access here. I ran headless stand-ins for both and list the manual steps
-below. The stretch goal (`sub_resource`) is done and loads cleanly in Godot.
+All 7 checks passed. Checks 4 and 5 were run by hand by the user in the Godot editor (I have no GUI access);
+checks 1, 2, 3, 6 and 7 were run here. The stretch goal (`sub_resource`) is done and loads cleanly in Godot.
 
 ## Acceptance checks (actual commands and output)
 
@@ -62,8 +61,12 @@ exit 0
 Note: Godot exits 0 even when it prints load errors, so this check has to read the output, not the exit code.
 "No errors" alone does not prove the scene loaded, so I added `experiments/inspect.gd` (see check 4 stand-in).
 
-**4. Editor shows the expected tree, scripts and textures attached** - NOT RUN in the editor GUI.
-Stand-in (headless, loads and instantiates the scene through Godot's loader):
+**4. Editor shows the expected tree, scripts and textures attached** - PASS (run by hand by the user in the Godot
+4.7.2 editor on `sample/`). The user reported that everything worked: tree Main > Ball > Sprite, script on Ball,
+texture on Sprite, Ball position (320, 180). Whether the editor showed a configuration-warning triangle on Ball
+(a `CharacterBody2D` with no shape) was not reported. Opening the project made the editor add only a comment header
+to `sample/project.godot`.
+Before that, headless stand-in (loads and instantiates the scene through Godot's loader):
 `godot --headless --path sample -s ../experiments/inspect.gd`
 
 ```
@@ -71,11 +74,19 @@ TREE Main : Node2D  position=(0.0, 0.0)
 TREE   Ball : CharacterBody2D  script=res://scripts/ball.gd  position=(320.0, 180.0)
 TREE     Sprite : Sprite2D  texture=res://art/ball.png  position=(0.0, 0.0)
 ```
-Manual steps for you: open `pocs/poc2-emitter/sample` as a project in the Godot editor, open `main.tscn`, confirm the
-tree is Main > Ball > Sprite, the script icon is on Ball, and Sprite shows the texture in the Inspector.
 
-**5. Saving from the editor changes little** - NOT RUN in the editor GUI.
-Stand-in (headless): `godot --headless --path sample -s ../experiments/resave.gd` saves the scene with
+**5. Saving from the editor changes little** - PASS (run by hand by the user in the Godot 4.7.2 editor). Result first:
+the user moved Ball's X position in the editor and pressed Ctrl+S; `git diff sample/main.tscn` showed exactly one line:
+
+```
+-position = Vector2(320, 180)
++position = Vector2(420, 180)
+```
+That is the user's own edit. The editor kept `[gd_scene load_steps=3 format=3]`, kept the ids `1_ball` / `2_ball`, and added no
+`uid`, no `unique_id` and no reordering. So an editor save of an emitter-written scene changes only what you edited.
+Caveat: this is one save of one small scene, and the save included a real edit (so the file was definitely re-serialized).
+
+The headless stand-in I ran first turned out to be misleading. `godot --headless --path sample -s ../experiments/resave.gd` saves the scene with
 `ResourceSaver` (Godot's own serializer, the same one the editor uses on save) to a copy, then `diff` against `main.tscn`:
 
 ```
@@ -98,10 +109,8 @@ Stand-in (headless): `godot --headless --path sample -s ../experiments/resave.gd
 ---
 > texture = ExtResource("2_lp7cx")
 ```
-What changed: `load_steps` is dropped from the header, and the resource ids are replaced by random ones
-(`1_ball` -> `1_yb28l`). No structural change: same nodes, same parents, same property lines.
-A real editor save may add more metadata (for example a `uid="uid://..."` in the header); I could not observe that here.
-Manual step for you: open the scene, Ctrl+S, `git diff sample/main.tscn`, and record anything beyond the above.
+What changed there: `load_steps` dropped and the ids replaced by random ones (`1_ball` -> `1_yb28l`). The real editor save
+did NOT do either, so `ResourceSaver.save` called from a headless script is not a faithful stand-in for the editor's save.
 
 **6. Three-level tree gets correct `parent` paths** - `experiments/three-level.def.ts` (Main > A > B > C > E, plus D under B):
 
@@ -150,9 +159,10 @@ handled by construction (inner ones are registered first) but I did not test tha
 - **Fresh projects need an import pass** before any texture loads (check 3). `--import` does it. Once the real
   flow runs against the game project, the editor has normally done this already.
 - **Godot exits 0 on load errors** and still instantiates partially loaded scenes (check 7).
-- **Godot rewrites ids on save** (`1_ball` -> `1_yb28l`) and drops `load_steps`. The emitter's ids are stable across our
-  runs but will not match what the editor writes after a save, so re-emitting over an editor-saved scene would show
-  an all-ids diff.
+- **An editor save preserved the emitter's ids and header** (check 5). A headless `ResourceSaver.save` rewrote both
+  (`1_ball` -> `1_yb28l`, `load_steps` dropped), so that is not how the editor behaves. Re-emitting over an
+  editor-saved scene therefore produced a clean one-line diff here, not an all-ids diff. Not tested: a scene where the user
+  adds new nodes or resources in the editor (Godot will assign its own ids to those).
 - **`@types/node`** is needed for `tsc` to typecheck a file that imports `node:fs`. It is a dev dependency only;
   the emitter itself is built-ins only. (PoC 1's script is outside its tsconfig `include`, so this did not come up there.)
 
@@ -171,7 +181,6 @@ handled by construction (inner ones are registered first) but I did not test tha
 
 ## Not done / limits
 
-- Checks 4 and 5 in the real editor (see the manual steps above).
 - Windows: not run. CLI paths go through `path.resolve`; output is always LF; `res://` strings are plain strings, never file paths.
 - Custom node properties beyond numbers, booleans, strings, raw literals, textures and inline sub-resources
   (for example arrays, dictionaries, `NodePath`s) are only possible through `{ raw: "..." }`.
