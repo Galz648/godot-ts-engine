@@ -134,3 +134,15 @@ PASS. Decoys deleted afterwards.
 ## Next steps
 
 PoC 2 (`.tscn` emitter) would import `ScriptPath` and `TexturePath` from this registry. Not started; waiting for go-ahead.
+
+## Follow-up (2026-09-30, after the move to godot-ts-engine)
+
+Two changes, needed before a game can use the registry as a submodule. Checked by hand; there is no automated test for them.
+
+- **`--out <file>`**: write the generated file somewhere else (creates folders). Default is unchanged: `bun run gen` still
+  prints `unchanged` and `registry.gen.ts` stays byte-identical. `--out` works before or after the project path.
+  (A first version had a bug: without `--out` the first argument was dropped. The default-mode check caught it.)
+- **Skip folders that have their own `project.godot` or a `.gdignore`**, like Godot does. Tested with a scratch project
+  containing a nested project and a `.gdignore` folder: only the real files appeared. Run against the game repo
+  (`lightway-example`) it found 2 scenes, 5 scripts, 0 textures and no `engine/` paths. Before this change `engine/` would have leaked in.
+- Not changed: `--watch` still reacts to events inside skipped folders (it regenerates, finds nothing new, writes nothing).

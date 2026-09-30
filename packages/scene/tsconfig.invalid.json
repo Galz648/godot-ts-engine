@@ -1,4 +1,7 @@
 {
   "extends": "./tsconfig.json",
-  "include": ["examples/invalid.example.ts"]
+  "include": [
+    "examples/invalid.example.ts",
+    "examples/with-registry.invalid.example.ts"
+  ]
 }

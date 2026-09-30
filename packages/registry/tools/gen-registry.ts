@@ -1,13 +1,15 @@
 // Scans a Godot project and writes src/registry.gen.ts: every texture, scene and script
 // as a res:// string literal, so a path typo becomes an ordinary TypeScript error.
 //
-// Usage: bun tools/gen-registry.ts <projectRoot> [--watch]     (Node built-ins only: fs, path, url)
+// Usage: bun tools/gen-registry.ts <projectRoot> [--out <file>] [--watch]     (Node built-ins only: fs, path, url)
+//   --out   where to write the generated file (default: src/registry.gen.ts next to this tool). A game that uses
+//           this tool as a submodule should point it at its own folder, not write inside the submodule.
 
-import { existsSync, readFileSync, readdirSync, watch, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, watch, writeFileSync } from "node:fs";
 import { basename, dirname, extname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const OUTPUT = fileURLToPath(new URL("../src/registry.gen.ts", import.meta.url));
+let OUTPUT = fileURLToPath(new URL("../src/registry.gen.ts", import.meta.url)); // --out overrides it
 const SKIP_DIRS = new Set([".godot", "node_modules", ".git"]);
 
 const KINDS = [
@@ -18,12 +20,17 @@ const KINDS = [
 
 // ---- 1. scan: every file under the project as a res:// path, sorted --------------------------
 
+// Godot itself ignores a folder that has its own project.godot (a separate project) or a .gdignore file.
+// The registry must too, or a submodule such as engine/ would fill a game's registry with its sample files.
+const belongsToAnotherWorld = (dir: string) => existsSync(join(dir, "project.godot")) || existsSync(join(dir, ".gdignore"));
+
 function scan(root: string): string[] {
   const found: string[] = [];
   const walk = (dir: string) => {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
       if (entry.isDirectory()) {
-        if (!SKIP_DIRS.has(entry.name)) walk(join(dir, entry.name));
+        const sub = join(dir, entry.name);
+        if (!SKIP_DIRS.has(entry.name) && !belongsToAnotherWorld(sub)) walk(sub);
       } else if (!entry.name.endsWith(".import")) {
         // backslashes -> forward slashes so Windows gives the same res:// paths
         found.push("res://" + relative(root, join(dir, entry.name)).split(sep).join("/"));
@@ -95,6 +102,7 @@ function render(allPaths: string[]): string {
 function generate(root: string): boolean {
   const next = render(scan(root));
   if (existsSync(OUTPUT) && readFileSync(OUTPUT, "utf8") === next) return false;
+  mkdirSync(dirname(OUTPUT), { recursive: true });
   writeFileSync(OUTPUT, next);
   return true;
 }
@@ -102,11 +110,13 @@ function generate(root: string): boolean {
 // ---- 4. command line ---------------------------------------------------------------------------
 
 const args = process.argv.slice(2);
-const rootArg = args.find((a) => !a.startsWith("--"));
-if (!rootArg || !existsSync(join(rootArg, "project.godot"))) {
-  console.error("usage: bun tools/gen-registry.ts <projectRoot> [--watch]   (folder containing project.godot)");
+const outIndex = args.indexOf("--out");
+const rootArg = args.find((a, i) => !a.startsWith("--") && (outIndex < 0 || i !== outIndex + 1));
+if (!rootArg || !existsSync(join(rootArg, "project.godot")) || (outIndex >= 0 && !args[outIndex + 1])) {
+  console.error("usage: bun tools/gen-registry.ts <projectRoot> [--out <file>] [--watch]   (projectRoot has project.godot)");
   process.exit(1);
 }
+if (outIndex >= 0) OUTPUT = resolve(args[outIndex + 1]);
 const root = resolve(rootArg);
 
 console.log(generate(root) ? `wrote ${OUTPUT}` : `unchanged ${OUTPUT}`);

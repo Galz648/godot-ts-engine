@@ -7,7 +7,15 @@
     "noEmit": true,
     "skipLibCheck": true,
     "allowImportingTsExtensions": true,
-    "types": ["node"]
+    "types": [
+      "node"
+    ]
   },
-  "include": ["src", "examples/valid.ts", "examples/one-tree.ts", "examples/check-invalid.ts"]
+  "include": [
+    "src",
+    "examples/valid.ts",
+    "examples/one-tree.ts",
+    "examples/with-registry.ts",
+    "examples/check-invalid.ts"
+  ]
 }
