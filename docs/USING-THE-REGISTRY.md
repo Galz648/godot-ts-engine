@@ -3,6 +3,10 @@
 The registry scans a Godot project and writes one TypeScript file with every texture, scene and script path as a string
 literal type. Put those types into the scene type and a typo in a path becomes a normal compile error.
 
+It also writes `Project`, the settings from `project.godot` a definition may need: today the viewport size,
+`Project.viewport.width` / `.height` (Godot's defaults, 1152 x 648, when `project.godot` sets nothing). Lay a scene out from
+those numbers instead of writing 1152, and changing the size in Godot's Project Settings flows into the next build.
+
 Everything below was run for real. The commands assume the layout of the game repo: this repo mounted at `engine/`.
 
 ## 1. Generate it for your game

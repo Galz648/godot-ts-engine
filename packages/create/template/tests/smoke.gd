@@ -13,9 +13,9 @@ func _initialize() -> void:
 	if packed == null:
 		fail("scenes/main.tscn did not load (run npm run build)")
 		return
-	# headless Godot shrinks the root window to 64x64; the game expects its real size
+	# headless Godot shrinks the root window to 64x64; the game expects the viewport size from Project Settings
 	var view := SubViewport.new()
-	view.size = Vector2i(1152, 648)
+	view.size = Vector2i(ProjectSettings.get_setting("display/window/size/viewport_width"), ProjectSettings.get_setting("display/window/size/viewport_height"))
 	root.add_child(view)
 	main = packed.instantiate()
 	view.add_child(main)

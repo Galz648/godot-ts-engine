@@ -258,7 +258,8 @@ if (args.includes("--watch") && !failed) {
       process.stdout.write(s.stdout);
     }, 300);
   };
-  watch(DEFS, (_e, name) => { if (name?.endsWith(".def.ts")) rebuild(`${name} changed`); });
+  // the registry changes with project.godot (the viewport size) and with added or removed files
+  watch(DEFS, (_e, name) => { if (name?.endsWith(".def.ts") || name === "registry.gen.ts") rebuild(`${name} changed`); });
   // a save in Godot: any scene the build wrote whose text is no longer what the build wrote (its own writes match)
   watch(ROOT, { recursive: true }, (_e, name) => {
     if (!name?.endsWith(".tscn")) return;

@@ -9,6 +9,7 @@ export class Coin extends Area2D {
 
   on_body_entered(body: Node2D): void {
     this.collected.emit(this.value);
-    this.position = Vector2(randf_range(40.0, 1112.0), randf_range(80.0, 560.0));
+    const size: Vector2 = this.get_viewport_rect().size;
+    this.position = Vector2(randf_range(40.0, size.x - 40.0), randf_range(80.0, size.y - 88.0));
   }
 }

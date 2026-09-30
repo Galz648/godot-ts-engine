@@ -25,6 +25,14 @@ Press F5 in Godot to run. The starter: move the blue square with the arrow keys 
 | `src/scripts/coin.ts` | A custom signal, `collected = gd.signal<[value: int]>()`, emitted on `body_entered` |
 | `src/scripts/main.ts` | Connects `coin.collected` in code, with a typed handler, and shows the score |
 | `tests/smoke.gd` | Plays it headless and fails if the coin cannot be collected or the value got lost |
+| `Project.viewport` in the definition | The viewport size from `project.godot`: every position in `main.def.ts` is derived from it |
+
+## The screen size
+
+Set it in Godot: Project Settings > Display > Window > Viewport Width / Height (stored in `project.godot`). The next
+`npm run build` (or `npm run dev`, straight away) regenerates `Project.viewport` in `scene-defs/registry.gen.ts` and rewrites
+the scene from it. Scripts read it at runtime with `this.get_viewport_rect().size`, the smoke test from `ProjectSettings`.
+The stretch mode is `canvas_items`, so the game always sees that size and a bigger window scales it up.
 
 ## How to work
 

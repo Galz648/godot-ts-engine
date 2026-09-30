@@ -9,11 +9,11 @@ with pull", `DECISIONS.md`).
 
 **What works**
 
-- **New game:** `npx github:Galz648/godot-ts-engine#v0.1.3 my-game --name "My Game" --engine-ref v0.1.3` gives a runnable
+- **New game:** `npx github:Galz648/godot-ts-engine#v0.1.4 my-game --name "My Game" --engine-ref v0.1.4` gives a runnable
   Godot project: collect-the-coin (two SVG textures, a body and an area with shapes, an exported variable set from the
   definition, a custom signal), this engine pinned at `engine/`, a first build, `verify` and a headless smoke test that pass,
   and a first commit. The game's README has a "Try breaking it" table: eleven mistakes and the message that catches each.
-  (Games started from `v0.1.0` or `v0.1.1` lack pull and the drift notice: update their `engine/` to `v0.1.3`; optionally add
+  (Games started from `v0.1.0` or `v0.1.1` lack pull and the drift notice: update their `engine/` to `v0.1.4`; optionally add
   `"pull": "bun engine/packages/build/src/build.ts --pull"` to `package.json`.)
 - **Scripts:** TypeScript in `src/scripts/`, compiled to GDScript by tstogd. The whole Godot API is typed, and so are your
   scenes' nodes, `res://` paths, groups and signals (tstogd generates those typings from the project).
@@ -133,7 +133,7 @@ keeps a hash of each file it wrote in `scene-defs/.emitted.json` (commit this fi
 ## Watch mode
 
 `npm run dev` runs a full build once, then keeps `tstogd watch` and the registry in watch mode and rebuilds the scenes when a
-`*.def.ts` file changes (measured: the scene file was rewritten 0.59 s after saving). It also watches the scenes the build
+`*.def.ts` file or the registry changes (a file added or removed, or the viewport size changed in `project.godot`) (measured: the scene file was rewritten 0.59 s after saving). It also watches the scenes the build
 wrote: when one changes and is no longer what the build wrote (its own writes match and are ignored), it prints
 `scenes/main.tscn saved outside the build (Godot?)` and the comparison (matches, behind, conflict). Tested with a Godot save
 while `npm run dev` ran: reported about a second later; a definition edit just before it gave no false report. Ctrl-C stops
