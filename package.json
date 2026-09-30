@@ -1,0 +1,16 @@
+{
+  "name": "poc4-plugin",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "plugins/*"
+  ],
+  "scripts": {
+    "build": "tsc -p plugins/scene-lint",
+    "test": "bun run build && node test/run.mjs"
+  },
+  "devDependencies": {
+    "typescript": "~5.9",
+    "scene-lint": "workspace:*"
+  }
+}
