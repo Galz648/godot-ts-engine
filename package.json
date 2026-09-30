@@ -1,0 +1,14 @@
+{
+  "name": "poc3-validator",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "validate": "node tools/validate-scene.ts",
+    "test": "node --test tools/validate-scene.test.ts",
+    "check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.3",
+    "typescript": "~5.9"
+  }
+}
