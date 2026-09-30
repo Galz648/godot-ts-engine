@@ -1,0 +1,13 @@
+{
+  "name": "poc2-emitter",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "emit": "bun tools/emit-tscn.ts sample/scene.def.ts sample/main.tscn",
+    "check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.3",
+    "typescript": "~5.9"
+  }
+}

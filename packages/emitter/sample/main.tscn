@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ball.gd" id="1_ball"]
+[ext_resource type="Texture2D" path="res://art/ball.png" id="2_ball"]
+
+[node name="Main" type="Node2D"]
+
+[node name="Ball" type="CharacterBody2D" parent="."]
+position = Vector2(320, 180)
+script = ExtResource("1_ball")
+
+[node name="Sprite" type="Sprite2D" parent="Ball"]
+texture = ExtResource("2_ball")
