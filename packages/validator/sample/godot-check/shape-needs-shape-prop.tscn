@@ -1,0 +1,7 @@
+[gd_scene format=3]
+
+[node name="Level" type="Node2D"]
+
+[node name="Wall" type="StaticBody2D" parent="."]
+
+[node name="Shape" type="CollisionShape2D" parent="Wall"]
