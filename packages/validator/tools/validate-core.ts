@@ -98,10 +98,12 @@ const shapeNeedsShapeProp: Rule = (node) => {
     'A shape must be provided for CollisionShape2D to function. Please create a shape resource for it! (Set the "shape" prop.)');
 };
 
-// Godot itself shows no configuration warning for this one; it is here because the handover asks for it.
+// Godot itself shows no configuration warning for this one: it is our rule. It is a warning, not an error, because a script
+// can set the texture at runtime (an atlas, a generated image), and that is legitimate.
 const spriteNeedsTexture: Rule = (node) => {
   if (node.type !== "Sprite2D" || node.props?.texture != null) return [];
-  return issue("warning", "sprite-needs-texture", node, 'This Sprite2D has no texture, so nothing will be drawn. Set the "texture" prop.');
+  return issue("warning", "sprite-needs-texture", node,
+    'This Sprite2D has no texture, so nothing will be drawn unless a script sets one. Set the "texture" prop if it should show an image.');
 };
 
 // Godot ignores script variables on a node that has no script, and says nothing about it.

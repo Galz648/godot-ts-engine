@@ -6,6 +6,7 @@ Who decided is marked on each line.
 ## Open questions from the overview
 
 1. **Switch the game from GodotJS to tstogd, or keep both side by side?**
+   **Corrected by the user, 2026-09-30: there is no GodotJS migration.** This project uses tstogd only. The answer below is withdrawn.
    Decided by the user: **yes**. The question was phrased as "switch or keep both", and the answer was a bare "yes", so this is
    recorded as "switch to tstogd". If "keep both for now" was meant, correct this line.
 

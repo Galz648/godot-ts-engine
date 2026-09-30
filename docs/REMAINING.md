@@ -22,8 +22,8 @@ Done and checked (run `./check-all.sh` in this repo, and `npm run verify:breakou
 | 1 | Per scene: **generated** (only edited in TypeScript), **scaffold once** (then owned by the Godot editor), or **split**? | The emitter overwrites; editor edits are lost on the next emit. | `LIMITS.md` section 1. Split needs instancing, which does not exist yet. |
 | 2 | Should registry keys **always include the folder** (`scriptsPongMain`) so they never change? | Adding `breakout/main.gd` renamed Pong's `Scripts.main` and broke its definition. | Breakout finding 1. Costs longer names everywhere. |
 | 3 | Keep the validator's `sprite-needs-texture` rule? | Godot itself does not warn about it. | Kept for now. |
-| 4 | The GodotJS to tstogd switch: decided **yes**, but nothing has been migrated. | The biggest piece of real work in the whole plan. | The first step would be an inventory of what the GodotJS game has that tstogd cannot express. |
-| 5 | Rename the game repo (`lightway-example`) | The name no longer describes it. | GitHub redirects the old URL. |
+| 4 | ~~The GodotJS to tstogd switch~~ | **No such migration exists** (user, 2026-09-30). Removed. | |
+| 5 | ~~Rename the game repo~~ | **Done 2026-09-30:** `lightway-example` is now `godot-ts-playground` (GitHub redirects the old URL). | The local folder is still `lightway-example`; rename it with `mv` if you like. |
 
 ## Build next, in the order I would do it
 
@@ -70,6 +70,6 @@ Done and checked (run `./check-all.sh` in this repo, and `npm run verify:breakou
 
 ## Picking this up
 
-    git clone --recurse-submodules https://github.com/Galz648/lightway-example   # the game repo, engine/ included
+    git clone --recurse-submodules https://github.com/Galz648/godot-ts-playground   # the game repo, engine/ included
     cd engine && ./check-all.sh          # after `bun install` in each package under packages/
     cd .. && npm install && npm run scenes:breakout && npm run verify:breakout && npm run sim:breakout

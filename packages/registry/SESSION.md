@@ -144,5 +144,5 @@ Two changes, needed before a game can use the registry as a submodule. Checked b
   (A first version had a bug: without `--out` the first argument was dropped. The default-mode check caught it.)
 - **Skip folders that have their own `project.godot` or a `.gdignore`**, like Godot does. Tested with a scratch project
   containing a nested project and a `.gdignore` folder: only the real files appeared. Run against the game repo
-  (`lightway-example`) it found 2 scenes, 5 scripts, 0 textures and no `engine/` paths. Before this change `engine/` would have leaked in.
+  (then called `lightway-example`, now `godot-ts-playground`) it found 2 scenes, 5 scripts, 0 textures and no `engine/` paths. Before this change `engine/` would have leaked in.
 - Not changed: `--watch` still reacts to events inside skipped folders (it regenerates, finds nothing new, writes nothing).

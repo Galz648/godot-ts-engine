@@ -14,6 +14,8 @@ run registry    bun run check
 run registry    bun run gen
 run emitter     bun test tools/emit-tscn.test.ts
 run emitter     bun run check
+run scene-sync  bun run test
+run scene-sync  bun run check
 run validator   npm test
 run validator   npm run check
 run build       bun run test

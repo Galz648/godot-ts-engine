@@ -1,0 +1,21 @@
+[gd_scene load_steps=3 format=3 uid="uid://c4k1x9m2q7w8e"]
+
+[ext_resource type="Script" path="res://scripts/pong/main.gd" id="1_a"]
+[ext_resource type="PackedScene" path="res://scenes/lightway/level.tscn" id="2_b"]
+
+[node name="Main" type="Node2D" unique_id=111]
+script = ExtResource("1_a")
+
+[node name="Background" type="ColorRect" parent="." unique_id=222]
+offset_right = 1152.0
+offset_bottom = 648.0
+
+[node name="Enemy" type="ColorRect" parent="." groups=["enemies"] unique_id=333]
+offset_left = 1096.0
+
+[node name="Timer" type="Timer" parent="." unique_id=444]
+wait_time = 3.0
+
+[node name="Level" parent="." instance=ExtResource("2_b")]
+
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]

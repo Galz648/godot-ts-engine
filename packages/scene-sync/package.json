@@ -1,0 +1,15 @@
+{
+  "name": "scene-sync",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "bun test src",
+    "check": "tsc --noEmit",
+    "probe": "bun src/probe.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.2",
+    "@types/node": "^26.6.3",
+    "typescript": "~5.9"
+  }
+}
