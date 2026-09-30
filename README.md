@@ -20,16 +20,16 @@ each package runs on its own, against stubs of the others (see `docs/DECISIONS.m
 
 **How to work with it, in one page: [`docs/DAILY-WORKFLOW.md`](docs/DAILY-WORKFLOW.md)** (what works, the workflow, what does not).
 
-    npx github:Galz648/godot-ts-engine#v0.1.2 my-game --name "My Game" --engine-ref v0.1.2
+    npx github:Galz648/godot-ts-engine#v0.1.3 my-game --name "My Game" --engine-ref v0.1.3
 
-Use this form, with the version in both places: `#v0.1.2` picks the template, `--engine-ref v0.1.2` picks the engine the
+Use this form, with the version in both places: `#v0.1.3` picks the template, `--engine-ref v0.1.3` picks the engine the
 game is pinned to, and the two must match. Without them you get the template and engine from `main`, which can change
 under you. Releases: [github.com/Galz648/godot-ts-engine/releases](https://github.com/Galz648/godot-ts-engine/releases).
 
 It writes a small Godot project (collect-the-coin: one scene definition, three TypeScript scripts, two SVG textures, a
 headless smoke test), adds this engine as a submodule pinned to one commit, installs, builds the editor plugin, builds,
 imports into Godot, runs `npm run verify` and `npm run smoke`, and makes the first commit. Needs git, Node 22+, bun and
-Godot 4.7 on `PATH` (without Godot it skips the import, verify and smoke). The game's README lists ten mistakes to try and
+Godot 4.7 on `PATH` (without Godot it skips the import, verify and smoke). The game's README lists eleven mistakes to try and
 the message that catches each. Options: `--engine-ref <tag|branch|commit>` (default `main`; from a local checkout of this repo, its own
 commit, which must be pushed), `--engine-url`, `--no-install`, `--files-only`. The template is `packages/create/template/`; the
 new game's `README.md` and `AGENTS.md` explain its daily loop.

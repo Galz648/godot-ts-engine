@@ -70,8 +70,10 @@ squiggles. That is the trade-off, and it may change if TypeScript 7 ever support
 - **Class data is from one Godot version (4.7.2).** Regenerate it for another version. Classes from addons are unknown to it.
 - **Script variables must go in `scriptProps`.** Godot silently ignores a script's own variables (like an exported
   `is_player`) if they are written before the script is attached. The emitter writes `scriptProps` after the `script` line;
-  put such values there, not in `props`. Nothing checks the variable names, and the compiler does not check keys of a
-  spread object (see `PONG-PROOF.md`).
+  put such values there, not in `props`. Since 2026-10-02 `npm run build` checks both bags against the node's generated
+  `.gd`: a script variable in `props` is an error, a `scriptProps` key the script does not declare is a warning. The catch:
+  it reads the `.gd` (so a script not converted yet is skipped), it skips the second check for a script that extends another
+  script (inherited variables are not read), and the editor squiggles do not have it (the plugin sees only the tree).
 - **The emitter cannot share a resource between nodes.** 40 identical shapes become 40 resources. It works; it is bloat.
 - **The validator does not check file paths.** Only the typed registry vocabulary catches a wrong script or texture path.
 - **Registry keys can be renamed** when a same-named file appears elsewhere (`main` becomes `scriptsPongMain`). Code using the old key stops compiling.
@@ -87,5 +89,3 @@ squiggles. That is the trade-off, and it may change if TypeScript 7 ever support
 - **A fresh Godot project must be imported once** (`godot --headless --import`) before textures load, and before tstogd's
   Godot check knows the scripts' class names (`Could not find type "Coin" in the current scope` until then). The generator
   runs build, import, build for this reason.
-- **A script variable put in `props` instead of `scriptProps` passes the build.** Godot drops it silently. `npm run verify`
-  catches it (`Coin.value: expected number 5.0, got 1`), and so does the template's smoke test.

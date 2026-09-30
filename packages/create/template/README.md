@@ -68,7 +68,8 @@ Each of these is caught before you press F5. Undo with `git checkout .`
 | Rename `Hint` to `Score` (two siblings named `Score`) | `npm run build` | `Another child of "Hud" is already called "Score"`; nothing written |
 | Remove the Coin's `Shape` | `npm run build` (warning), `npm run smoke` | Godot's own "This node has no shape" warning; smoke: `no coin after 300 frames` |
 | Remove `script: Scripts.coin` | `npm run build` (a warning, then tstogd fails the build) | `These script variables are ignored because this node has no script`, then `main.ts: ... & Area2D' is missing the following properties from type 'Coin'` |
-| Move `value: 5` from `scriptProps` into `props` | `npm run verify`, `npm run smoke` | `Coin.value: expected number 5.0, got 1` (not the build: it does not know script variables) |
+| Move `value: 5` from `scriptProps` into `props` | `npm run build` (and `verify`, `smoke`) | `"value" is a variable of scripts/coin.gd, so it belongs in scriptProps`; nothing written |
+| `value` -> `valu` in the Coin's `scriptProps` | `npm run build` (warning) | `"valu" is not a variable of scripts/coin.gd` |
 | `this.get_node('Hud/Scroe')` in `main.ts` | tstogd (`npm run build`) | `Type 'Node \| null' is not assignable to type 'Label'` |
 | `on_coin_collected(value: String)` in `main.ts` | tstogd (`npm run build`) | `'(value: String) => void' is not assignable to parameter of type '(value: number) => void'` |
 | Move the coin in Godot and save, then change `value` in `main.def.ts` | `npm run build` | `CONFLICT` and the differences |

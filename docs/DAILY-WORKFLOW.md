@@ -9,11 +9,11 @@ with pull", `DECISIONS.md`).
 
 **What works**
 
-- **New game:** `npx github:Galz648/godot-ts-engine#v0.1.2 my-game --name "My Game" --engine-ref v0.1.2` gives a runnable
+- **New game:** `npx github:Galz648/godot-ts-engine#v0.1.3 my-game --name "My Game" --engine-ref v0.1.3` gives a runnable
   Godot project: collect-the-coin (two SVG textures, a body and an area with shapes, an exported variable set from the
   definition, a custom signal), this engine pinned at `engine/`, a first build, `verify` and a headless smoke test that pass,
-  and a first commit. The game's README has a "Try breaking it" table: ten mistakes and the message that catches each.
-  (Games started from `v0.1.0` or `v0.1.1` lack pull and the drift notice: update their `engine/` to `v0.1.2` and add
+  and a first commit. The game's README has a "Try breaking it" table: eleven mistakes and the message that catches each.
+  (Games started from `v0.1.0` or `v0.1.1` lack pull and the drift notice: update their `engine/` to `v0.1.3`; optionally add
   `"pull": "bun engine/packages/build/src/build.ts --pull"` to `package.json`.)
 - **Scripts:** TypeScript in `src/scripts/`, compiled to GDScript by tstogd. The whole Godot API is typed, and so are your
   scenes' nodes, `res://` paths, groups and signals (tstogd generates those typings from the project).
@@ -96,7 +96,7 @@ smoke test pass after the next definition edit); and the same with a group added
 | convert | `tstogd convert`: TypeScript scripts to GDScript and typings | never on its own; it is reported, and checked again at the end if a scene changed |
 | registry | regenerates `scene-defs/registry.gen.ts` (every script, scene and texture path, as types) | the tool fails |
 | types | `tsc --noEmit -p scene-defs` (if the game has `scene-defs/tsconfig.json` and TypeScript installed): a mistyped registry key, or a texture whose file is gone | any type error; no scene is written |
-| scenes | for each `scene-defs/*.def.ts`: **validate**, then write the scene file; for a scene saved in Godot, compare instead (above) | a validation **error** (warnings are printed, not blocking), a definition that cannot load, a conflict, or the guard (below) |
+| scenes | for each `scene-defs/*.def.ts`: **validate** (the validator's rules, plus `props` / `scriptProps` checked against each node's generated `.gd`), then write the scene file; for a scene saved in Godot, compare instead (above) | a validation **error** (warnings are printed, not blocking), a definition that cannot load, a conflict, or the guard (below) |
 | registry again | only if a scene was created, so the new scene is listed | the tool fails |
 | convert again | only if a scene changed, so scripts see the new scene's typings | tstogd reports errors |
 
@@ -133,15 +133,18 @@ keeps a hash of each file it wrote in `scene-defs/.emitted.json` (commit this fi
 ## Watch mode
 
 `npm run dev` runs a full build once, then keeps `tstogd watch` and the registry in watch mode and rebuilds the scenes when a
-`*.def.ts` file changes (measured: the scene file was rewritten 0.59 s after saving). Ctrl-C stops it and its helpers.
+`*.def.ts` file changes (measured: the scene file was rewritten 0.59 s after saving). It also watches the scenes the build
+wrote: when one changes and is no longer what the build wrote (its own writes match and are ignored), it prints
+`scenes/main.tscn saved outside the build (Godot?)` and the comparison (matches, behind, conflict). Tested with a Godot save
+while `npm run dev` ran: reported about a second later; a definition edit just before it gave no false report. Ctrl-C stops
+it and its helpers.
 
 ## What it does not do
 
 - It does not run or import into Godot. A brand-new texture still needs the editor (or `godot --headless --import`) to import it once.
 - It does not watch the game scripts itself; `tstogd watch` does that.
 - It does not merge editor changes with definition changes: it reports them, and `--pull` or `--force` picks a side.
-- `--watch` reacts to definition changes only: a save in Godot is reported at the next definition change or `npm run build`,
-  and it never pulls.
+- `--watch` never pulls. It does report a save in Godot (below), but only for scenes the build wrote.
 - Not tested: Windows; definitions that load slowly; more than a few scenes.
 
 ## Optional: live squiggles in the editor

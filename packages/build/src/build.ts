@@ -18,7 +18,7 @@
 
 import { spawn, spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, readdirSync, watch, writeFileSync } from "node:fs";
-import { dirname, join, relative, resolve } from "node:path";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { emitTscn } from "../../emitter/tools/emit-tscn.ts";
 import type { SceneNode } from "../../scene/src/index.ts";
@@ -27,6 +27,7 @@ import { parseTscn } from "../../scene-sync/src/parse.ts";
 import { writeDef } from "../../scene-sync/src/write-def.ts";
 import { validate } from "../../validator/tools/validate-scene.ts";
 import { decideWrite, defBaseOf, sha, type StateEntry, writtenOf } from "./guard.ts";
+import { checkScriptVars } from "./script-vars.ts";
 
 const ROOT = process.cwd();
 const DEFS = join(ROOT, "scene-defs");
@@ -37,6 +38,12 @@ const args = process.argv.slice(2);
 const force = args.includes("--force");
 const pull = args.includes("--pull");
 if (force && pull) { console.error("--force keeps TypeScript's version and --pull keeps Godot's: pick one"); process.exit(2); }
+
+// games started before v0.1.2 have no `pull` script
+const PULL = (() => {
+  try { return JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).scripts?.pull ? "npm run pull" : "npm run build -- --pull"; }
+  catch { return "npm run build -- --pull"; }
+})();
 
 const say = (step: string, text: string) => console.log(`${step.padEnd(12)} ${text}`);
 const hasTstogd = existsSync(join(ROOT, "tstogd.json"));
@@ -67,6 +74,15 @@ function convert(): { ok: boolean; note: string; details: string[] } {
   return result;
 }
 
+/** The validator's rules, plus the props / scriptProps check against each node's generated .gd (see script-vars.ts). */
+function check(tree: SceneNode): { severity: "error" | "warning"; path: string; message: string }[] {
+  const load = (res: string) => {
+    const file = join(ROOT, res.slice("res://".length));
+    return existsSync(file) ? readFileSync(file, "utf8") : null;
+  };
+  return [...validate(tree), ...checkScriptVars(tree, load)];
+}
+
 /**
  * A scene saved in Godot since we wrote it. Godot's version is read back, validated, and compared with the definition:
  *   same                          -> "owned by Godot; definition matches"
@@ -84,7 +100,7 @@ async function godotOwned(a: { name: string; file: string; output: string; tree:
     say("scenes", `${name}: owned by Godot; could not read ${output} back (${err instanceof Error ? err.message : err}); skipped`);
     return {};
   }
-  const issues = validate(parsed.root);
+  const issues = check(parsed.root);
   for (const i of issues) console.log(`             ${i.severity}: ${i.path}: ${i.message}   (in Godot's ${output})`);
   const bad = issues.some((i) => i.severity === "error");
   const godotOnly = parsed.unsupported.length ? ` Godot-only, not in any definition: ${parsed.unsupported.join("; ")}.` : "";
@@ -94,14 +110,14 @@ async function godotOwned(a: { name: string; file: string; output: string; tree:
     const next = emitTscn(parsed.root);
     if (parsed.unsupported.length === 0) {
       writeFileSync(join(DEFS, file), writeDef(parsed.root, { output, registry, header: [
-        `Pulled from ${output} (the Godot editor's version) by \`npm run pull\`. TypeScript owns the scene again: edit this file.`,
+        `Pulled from ${output} (the Godot editor's version) by \`${PULL}\`. TypeScript owns the scene again: edit this file.`,
       ] }));
       writeFileSync(resolve(ROOT, output), next);
       say("scenes", `${name}: pulled -> ${output}: ${file} rewritten from the scene; TypeScript owns it again (the scene was rewritten from it: Godot's unique_ids dropped, it adds new ones on its next save)`);
       return { changed: true, state: sha(next), failed: bad };
     }
     writeFileSync(join(DEFS, file), writeDef(parsed.root, { output, registry, header: [
-      `Pulled from ${output} by \`npm run pull\` as a MIRROR: Godot owns that scene, and editing this file does not change it.`,
+      `Pulled from ${output} by \`${PULL}\` as a MIRROR: Godot owns that scene, and editing this file does not change it.`,
       `Godot-only, not in this file: ${parsed.unsupported.join("; ")}.`,
     ] }));
     say("scenes", `${name}: pulled ${file} from ${output} as a mirror; Godot keeps the scene, because the definition cannot hold it all.${godotOnly}`);
@@ -116,11 +132,11 @@ async function godotOwned(a: { name: string; file: string; output: string; tree:
   }
   if (sha(a.text) !== defBaseOf(a.entry)) {
     say("scenes", `${name}: CONFLICT: ${file} changed, and so did ${output} in Godot. Differences (definition -> scene):${list(diffs)}` +
-      `\n             Keep Godot's: npm run pull (rewrites ${file}). Keep TypeScript's: npm run build -- --force (rewrites the scene${parsed.unsupported.length ? `, losing: ${parsed.unsupported.join("; ")}` : ""}).`);
+      `\n             Keep Godot's: ${PULL} (rewrites ${file}). Keep TypeScript's: npm run build -- --force (rewrites the scene${parsed.unsupported.length ? `, losing: ${parsed.unsupported.join("; ")}` : ""}).`);
     return { failed: true };
   }
   say("scenes", `${name}: owned by Godot; ${file} is behind the scene (${diffs.length} difference${diffs.length > 1 ? "s" : ""}):${list(diffs)}` +
-    `\n             To update the definition from the scene: npm run pull.${godotOnly}`);
+    `\n             To update the definition from the scene: ${PULL}.${godotOnly}`);
   return { failed: bad };
 }
 
@@ -163,7 +179,7 @@ async function buildScenes(): Promise<{ failed: boolean; changed: boolean }> {
       }
       if (pull) { say("scenes", `${name}: nothing to pull (${output} is not owned by Godot)`); }
 
-      const issues = validate(tree);
+      const issues = check(tree);
       for (const i of issues) console.log(`             ${i.severity}: ${i.path}: ${i.message}`);
       if (issues.some((i) => i.severity === "error")) { say("scenes", `${name}: FAILED validation, nothing written`); failed = true; continue; }
 
@@ -234,16 +250,25 @@ if (args.includes("--watch") && !failed) {
     spawn(process.execPath, [REGISTRY_TOOL, ROOT, "--out", join(DEFS, "registry.gen.ts"), "--watch"], { cwd: ROOT, stdio: "ignore" }),
   ];
   let timer: ReturnType<typeof setTimeout> | undefined;
-  watch(DEFS, (_e, name) => {
-    if (!name || !name.endsWith(".def.ts")) return;
+  const rebuild = (why: string) => {
     clearTimeout(timer);
     timer = setTimeout(() => {
       const s = spawnSync(process.execPath, [SELF, "--scenes-only", ...(force ? ["--force"] : [])], { cwd: ROOT, encoding: "utf8" });
-      console.log(`\n[${new Date().toLocaleTimeString()}] ${name} changed`);
+      console.log(`\n[${new Date().toLocaleTimeString()}] ${why}`);
       process.stdout.write(s.stdout);
     }, 300);
+  };
+  watch(DEFS, (_e, name) => { if (name?.endsWith(".def.ts")) rebuild(`${name} changed`); });
+  // a save in Godot: any scene the build wrote whose text is no longer what the build wrote (its own writes match)
+  watch(ROOT, { recursive: true }, (_e, name) => {
+    if (!name?.endsWith(".tscn")) return;
+    const rel = name.split(sep).join("/");
+    const state: Record<string, StateEntry> = existsSync(STATE) ? JSON.parse(readFileSync(STATE, "utf8")) : {};
+    const file = join(ROOT, rel);
+    if (!(rel in state) || !existsSync(file) || sha(readFileSync(file, "utf8")) === writtenOf(state[rel])) return;
+    rebuild(`${rel} saved outside the build (Godot?)`);
   });
-  console.log("watching scene-defs/*.def.ts (tstogd and the registry watch too). Ctrl-C to stop.");
+  console.log("watching scene-defs/*.def.ts and the scenes they wrote (tstogd and the registry watch too). Ctrl-C to stop.");
   const stop = () => { kids.forEach((k) => k.kill()); process.exit(0); };
   process.on("SIGINT", stop); process.on("SIGTERM", stop);
 } else {
