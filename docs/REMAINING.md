@@ -30,7 +30,7 @@ Done and checked (run `./check-all.sh` in this repo, and `npm run verify:breakou
 **A. Finish the integration (held on purpose, to go slowly)**
 
 1. **Registry hand-over into the scene type.** Today each game writes three lines of `Vocab` by hand and imports engine types by relative path into the submodule. Make that a proper import with a helper.
-2. ~~Editor plugin on the real validator and the shared type~~ **Reworked 2026-09-30** (tolerant of helpers and loops; real validator). Still to do: see it work in the Cursor editor, then the old criteria (undo clears the squiggle, feels no slower).
+2. ~~Editor plugin on the real validator and the shared type~~ **Reworked 2026-09-30** (tolerant of helpers and loops; real validator). Seen working in the Cursor editor (2026-09-30). Still to do: the "feels no slower" check on a big scene file.
 3. ~~A `build` command~~ **Done (minimal, 2026-09-30):** `packages/build`, see `DAILY-WORKFLOW.md`. Still to do for it: a `--only <scene>` option, and running the registry step only when files changed.
 4. **Move the verifier into the engine** (`verify-scene.gd` and `export-expected.ts`, now in the game repo). It is generic and it found nothing false.
 
@@ -57,7 +57,7 @@ Done and checked (run `./check-all.sh` in this repo, and `npm run verify:breakou
 - **Windows** and **Linux** (paths are normalised in code; nothing was run). Godot versions other than 4.7.2.
 - A generated scene **opened in the Godot editor** (Pong and Breakout were loaded through Godot's loader, not opened).
 - **Adding a new node in the editor** and then re-emitting (only moving a node and saving was tested).
-- The editor plugin: criterion "undo clears the squiggle", the "feels no slower" half of speed, and everything with the shared type.
+- The editor plugin: the "feels no slower" half of the speed check on a big scene file, and TypeScript versions other than 5.9.3.
 - Whether the 253-member node-class union slows the editor on big scene files.
 - Emitter speed on large scenes (never timed).
 - Scenes using animation, audio, tile maps, themes, or many signals.

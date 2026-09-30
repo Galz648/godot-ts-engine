@@ -205,5 +205,11 @@ loops and helpers) are full of those, so it would have been silent on almost eve
 Limits, honestly: in a definition like Breakout's most nodes are made by helpers, so the plugin sees only the literal skeleton
 (camera, HUD, timer, containers). The build (`npm run build`) is where the whole tree is validated. The plugin is live feedback, not the gate.
 
-Not verified: any of this **in the Cursor editor** (only tsserver and the tool above), the old criteria 2 and 7 in an editor, speed on a
-scene file with many literal nodes, TypeScript other than 5.9.3.
+**Editor run (by hand, by the user, in the Cursor clean profile opened on the game repo, 2026-09-30).** On the real
+`scene-defs/breakout.def.ts`: (1) opened with no squiggles, (2) `type: "Label"` changed to `"Labell"` on the ScoreLabel gave the
+squiggle, (3) the Hud's ScoreLabel renamed to `"HintLabel"` gave the duplicate-name squiggle, (4) undo cleared them. All worked. So the
+editor now shows the real validator's findings on a real definition, and the old criterion "undo clears the squiggle" is confirmed in an editor.
+
+Not verified: the "feels no slower" half of the old speed criterion (only measured at tsserver level, with the earlier stub: no
+measurable cost), speed on a file with many literal nodes, TypeScript other than 5.9.3, and the plugin path setting without the
+workspace TypeScript prompt (the profile set both).
