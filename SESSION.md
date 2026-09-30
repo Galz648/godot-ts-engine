@@ -20,7 +20,8 @@ object so PoC 4 can turn it into an editor squiggle.
 
 ## Completed
 
-Checks 1-5 pass. **Check 6 (look at it in the Godot editor) could not be run here**; see below for what I did instead.
+Checks 1-5 pass. **Check 6 (look at it in the Godot editor)** could not be run by the agent that built this, and was later run
+by hand by the user in the Godot 4.7.2 editor: see check 6 below.
 
 ## Acceptance checks (actual commands and output)
 
@@ -85,7 +86,13 @@ error: bad:name: The name "bad:name" contains ":", which Godot does not allow in
 **5. `issue.node` is the same object reference as the node in the input tree (`===`)**: PASS. The six
 "issue.node is the same object as in the input tree" tests use `assert.ok(issue.node === <object from the input tree>)`.
 
-**6. Emit a fixture with PoC 2, open it in the Godot editor, note whether Godot shows the same warning**: NOT RUN as specified.
+**6. Emit a fixture with PoC 2, open it in the Godot editor, note whether Godot shows the same warning**: PASS for the five
+scenes in `sample/godot-check/`, run by hand by the user in the Godot 4.7.2 editor. The user reported that the predictions
+in the table below were correct: `clean.tscn` no warning; `ball-no-shape.tscn` a warning on Ball;
+`shape-needs-shape-prop.tscn` and `shape-needs-body.tscn` a warning on Shape; `sprite-needs-texture.tscn` NO warning
+(the validator's `sprite-needs-texture` rule is not a Godot warning). The hover text of the triangles was not reported, so
+the message wording was not compared. The AnimatableBody2D case (below) was NOT tested: there is no fixture for it.
+The agent's own notes from before that run (it had no way to look at the editor) follow.
 
 - PoC 2 is not available to me, so I wrote the `.tscn` files by hand in `sample/godot-check/` (same shape the emitter
   would write). They are an approximation of PoC 2's output, not its output.
@@ -106,9 +113,8 @@ error: bad:name: The name "bad:name" contains ":", which Godot does not allow in
 
 - Godot also has warnings we don't implement: One Way Collision on an Area2D, and polygon-based shapes on CollisionShape2D.
 - Godot's two-sentence warnings separate the sentences with a newline; ours use a space.
-- **To finish the check properly:** open `sample/godot-check/ball-no-shape.tscn`, `shape-needs-body.tscn`,
-  `shape-needs-shape-prop.tscn`, `sprite-needs-texture.tscn` in the editor and look at the Scene dock. `clean.tscn` has a
-  real `CircleShape2D` and should show none. I have not observed any of these.
+- **Editor run:** the user opened `ball-no-shape.tscn`, `shape-needs-body.tscn`, `shape-needs-shape-prop.tscn`,
+  `sprite-needs-texture.tscn` and `clean.tscn` and reported the source-based predictions above were correct.
 
 ## Findings and surprises
 
@@ -139,7 +145,7 @@ error: bad:name: The name "bad:name" contains ":", which Godot does not allow in
 
 ## Not done
 
-- Godot editor observation (check 6), see above.
+- Godot hover-text wording and the AnimatableBody2D case (check 6 was run for five scenes only), see above.
 - No Windows run. The code has no path handling beyond `resolve`/`pathToFileURL`.
 - No rule for CollisionPolygon2D parents, the `extends` check, or class-hierarchy checks (out of scope per the handover;
   a hierarchy would also fix the AnimatableBody2D false positive).
