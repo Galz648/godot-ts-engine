@@ -10,10 +10,10 @@
 //   --files-only          only write the template files (no git, no engine, no install)
 //
 // Steps: files, git init, engine submodule at the pinned commit, npm install, editor plugin build, first build,
-// Godot import, verify, first commit. Every step says what it did; a failed step stops with the command to retry.
+// Godot import, verify, smoke test, first commit. Every step says what it did; a failed step stops with the command to retry.
 
 import { spawnSync, type SpawnSyncOptions } from "node:child_process";
-import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, utimesSync, writeFileSync } from "node:fs";
 import { basename, dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -117,7 +117,7 @@ function create(opts: Options) {
     const pinned = git(join(dir, "engine"), "rev-parse", "HEAD");
     const tag = spawnSync("git", ["-C", join(dir, "engine"), "describe", "--tags", "--exact-match"], { encoding: "utf8" }).stdout?.trim();
     say("engine", `${src.url} at ${pinned.slice(0, 7)}${tag ? ` (${tag})` : ""}`);
-    for (const pkg of ["build/src/build.ts", "verify/src/verify.ts"]) {
+    for (const pkg of ["build/src/build.ts", "verify/src/verify.ts", "scene-sync/src/write-def.ts"]) {
       if (!existsSync(join(dir, "engine/packages", pkg))) throw new Error(`the pinned engine has no packages/${pkg}; it is older than this template. Pass a newer --engine-ref.`);
     }
   } catch (err) {
@@ -134,13 +134,25 @@ function create(opts: Options) {
     run("bun", ["install"], { cwd: plugin, quiet: true });
     run("bun", ["run", "build"], { cwd: plugin, quiet: true });
     say("editor", "scene-lint plugin built");
-    run("npm", ["run", "--silent", "build"], { cwd: dir });
     const godot = process.env.GODOT ?? "godot";
     if (has(godot)) {
+      // tstogd checks each .gd with Godot, which only knows a script's class_name (main.ts uses Coin) once the project is
+      // imported, and the import needs the .gd files. So a first build that may fail on that, the import, then the real one.
+      spawnSync("npm", ["run", "--silent", "build"], { cwd: dir, encoding: "utf8" });
       run(godot, ["--headless", "--path", dir, "--import"], { cwd: dir, quiet: true });
-      say("godot", "project imported (class names cached)");
+      // tstogd only rewrites the typings of scripts it sees change; they should list the uids the import just made
+      const now = new Date();
+      for (const f of readdirSync(join(dir, "src"), { recursive: true }) as string[]) {
+        if (f.endsWith(".ts") && !f.startsWith("_typings")) utimesSync(join(dir, "src", f), now, now);
+      }
+    }
+    run("npm", ["run", "--silent", "build"], { cwd: dir });
+    if (has(godot)) {
+      run(godot, ["--headless", "--path", dir, "--import"], { cwd: dir, quiet: true });
+      say("godot", "project imported (class names cached, textures imported)");
       run("npm", ["run", "--silent", "verify"], { cwd: dir });
-    } else say("godot", `not on PATH: skipped import and verify. Later: godot --headless --import && npm run verify`);
+      run("npm", ["run", "--silent", "smoke"], { cwd: dir });
+    } else say("godot", `not on PATH: skipped import, verify and smoke. Later: godot --headless --import && npm run verify && npm run smoke`);
   }
 
   git(dir, "add", "-A");

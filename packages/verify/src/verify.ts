@@ -10,7 +10,7 @@ import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSy
 import { tmpdir } from "node:os";
 import { join, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { sha } from "../../build/src/guard.ts";
+import { sha, type StateEntry, writtenOf } from "../../build/src/guard.ts";
 import { expectedOf } from "./export-expected.ts";
 
 const ROOT = process.cwd();
@@ -31,7 +31,7 @@ if (spawnSync(godot, ["--version"], { encoding: "utf8" }).status !== 0) {
 }
 
 const STATE = join(ROOT, "scene-defs", ".emitted.json"); // what the build last wrote (see build/src/guard.ts)
-const written: Record<string, string> = existsSync(STATE) ? JSON.parse(readFileSync(STATE, "utf8")) : {};
+const written: Record<string, StateEntry> = existsSync(STATE) ? JSON.parse(readFileSync(STATE, "utf8")) : {};
 
 const tmp = mkdtempSync(join(tmpdir(), "verify-"));
 let failed = false;
@@ -40,7 +40,7 @@ for (const def of defs) {
   const mod = await import(pathToFileURL(def).href);
   if (!mod.default || typeof mod.output !== "string") { console.log(`FAIL  ${name}: needs \`export default\` and \`export const output\``); failed = true; continue; }
   if (!existsSync(resolve(ROOT, mod.output))) { console.log(`FAIL  ${name}: ${mod.output} does not exist (run the build first)`); failed = true; continue; }
-  const lastWritten = written[mod.output];
+  const lastWritten = writtenOf(written[mod.output]);
   if (lastWritten !== undefined && sha(readFileSync(resolve(ROOT, mod.output), "utf8")) !== lastWritten) {
     console.log(`skip  ${name}: ${mod.output} is owned by Godot (saved there since the build wrote it); not compared`);
     continue;

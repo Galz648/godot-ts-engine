@@ -49,8 +49,20 @@ Who decided is marked on each line.
 - **Kept and worked on:** the registry (typed paths for scene definitions), the emitter and validator as the scaffold step,
   `verify`, the game template, and the editor squiggles. The squiggles cost nothing extra: tstogd's own editor plugin needs the
   same TypeScript 5.9 setup with TypeScript 7 off.
-- **Frozen (kept in the repo, not worked on):** `packages/scene-sync` (read back, merge, analyzer) and new emitter features
+- **Frozen (kept in the repo, not worked on):** the merge and analyzer in `packages/scene-sync`, and new emitter features
   (groups, signal connections, instanced scenes, shared resources). Do those in scripts (tstogd) or in the editor.
+
+## Pull: definitions from scenes (user, 2026-10-02)
+
+- **Read-back unfrozen for one job:** the build reads a scene saved in Godot back (`parse.ts`), validates it, and compares it
+  with the definition (`diff.ts`): "matches", "behind" (exit 0) or "CONFLICT" (exit 1). The merge stays frozen.
+- **Regenerating is a flag, never automatic:** `npm run pull` (`build.ts --pull`) rewrites the definition from the scene
+  (`write-def.ts`). A plain build only reports. `--pull` with `--force` is refused.
+- **Ownership after a pull: hybrid.** If the scene holds nothing the definition cannot (no groups, editor connections,
+  instances, other resources), TypeScript owns it again and the build rewrites the scene from the new definition. Otherwise
+  Godot keeps it and the definition is a mirror, labelled as such; editing it is reported as a conflict.
+- **Template: collect-the-coin**, chosen to exercise what the layer checks: textures through the registry, bodies and areas
+  with shapes, an exported variable set from the definition, a custom signal connected in code, and a headless smoke test.
 
 ## Integration pace
 
@@ -68,5 +80,6 @@ Who decided is marked on each line.
 | Class hierarchy in the validator and types | done (validator 40 tests; class data from Godot 4.7.2) |
 | Shared `SceneNode` type | done (`packages/scene`), used by the validator and the emitter |
 | Cursor profile | done, in `tools/cursor-profile/` |
-| Scene policy | decided 2026-10-01: scaffold once; the build and `verify` skip scenes saved in Godot |
-| Sync, new emitter features | frozen 2026-10-01 |
+| Scene policy | decided 2026-10-01: scaffold once; the build does not write scenes saved in Godot and `verify` skips them |
+| Drift notice, conflict, pull | done 2026-10-02 (flag only, hybrid ownership) |
+| Merge, new emitter features | frozen 2026-10-01 |

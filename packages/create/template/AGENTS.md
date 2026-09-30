@@ -6,13 +6,18 @@ written to `.tscn` by the engine in `engine/` (a git submodule).
 ## Rules
 
 - Edit `src/scripts/*.ts`, never `scripts/*.gd` or `src/_typings/`: those are generated and overwritten.
-- Scenes are scaffolded once. While the build still writes a scene, change its `scene-defs/*.def.ts`, not the `.tscn`. Once the
-  build says a scene is "owned by Godot", its definition no longer applies: change the `.tscn` in the Godot editor (or ask the
-  user to), and do not edit that definition expecting an effect. `scene-defs/registry.gen.ts` is generated.
+- While the build still writes a scene, change its `scene-defs/*.def.ts`, not the `.tscn`. Once the build says a scene is
+  "owned by Godot", the build no longer writes it. "matches" and "is behind the scene" are normal, not failures. To change
+  such a scene: ask the user to change it in Godot, or run `npm run pull` and then, if the build says TypeScript owns it
+  again, edit the definition. A definition whose header says MIRROR does not change its scene: do not edit it.
+- A `CONFLICT` means the definition and the scene were both changed. Do not pick a side yourself: ask the user whether to
+  keep Godot's (`npm run pull`) or TypeScript's (`npm run build -- --force`, which loses the Godot edits).
+- `scene-defs/registry.gen.ts` and `scene-defs/.emitted.json` are generated; commit them, do not edit them.
 - Do not edit `engine/`. It is a pinned submodule shared with other games; changes belong in the godot-ts-engine repo.
-- After a change, run `npm run build`, then `npm run verify`. Both must pass. `npm run check` type-checks `scene-defs/`.
+- After a change, run `npm run build`, then `npm run verify`, then `npm run smoke`. All must pass. The build type-checks
+  `scene-defs/` too (`npm run check` alone does just that).
 - Never run `npm run build -- --force` without asking: it overwrites scenes that were edited in the Godot editor.
-- "owned by Godot; skipped" in the build output is normal, not a failure.
+- Change `tests/smoke.gd` when the game changes what it checks (the player, the coin, the score label).
 - New script or texture file: `npm run build` regenerates the registry; then use its key (`Scripts.x`, `Textures.y`).
 
 ## tstogd scripts

@@ -9,7 +9,7 @@ const tmp = () => mkdtempSync(join(tmpdir(), "create-test-"));
 test("writes every template file with the name filled in", () => {
   const dir = join(tmp(), "space-game");
   const files = writeTemplate(dir, "Space Game");
-  for (const f of ["project.godot", "package.json", "tstogd.json", ".gitignore", "AGENTS.md", "scene-defs/main.def.ts", "src/scripts/player.ts", "tools/cursor-profile/launch.sh"]) {
+  for (const f of ["project.godot", "package.json", "tstogd.json", ".gitignore", "AGENTS.md", "scene-defs/main.def.ts", "src/scripts/player.ts", "src/scripts/coin.ts", "src/scripts/main.ts", "art/player.svg", "art/coin.svg", "tests/smoke.gd", "tools/cursor-profile/launch.sh"]) {
     expect(files).toContain(f);
   }
   expect(files).not.toContain("gitignore");

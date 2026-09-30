@@ -6,7 +6,9 @@
   "scripts": {
     "build": "bun engine/packages/build/src/build.ts",
     "dev": "bun engine/packages/build/src/build.ts --watch",
+    "pull": "bun engine/packages/build/src/build.ts --pull",
     "verify": "bun engine/packages/verify/src/verify.ts",
+    "smoke": "${GODOT:-godot} --headless --fixed-fps 60 --path . -s res://tests/smoke.gd",
     "check": "tsc --noEmit -p scene-defs",
     "convert": "tstogd convert",
     "watch": "tstogd watch",

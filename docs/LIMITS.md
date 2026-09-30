@@ -20,12 +20,24 @@ The TypeScript file is the source of truth. The emitter has no idea what was in 
 
 **Why.** Merging would mean reading the `.tscn` back and combining it with the TypeScript tree. A prototype of that exists
 (`packages/scene-sync`), and the measurements show the editor adds things the model cannot hold (groups, connections,
-instances), so it is **frozen**.
+instances), so the merge is **frozen**.
 
-**What we do: scaffold once** (decided 2026-10-01). `npm run build` rewrites a scene only while it is exactly what the build
-last wrote. On Wednesday it sees your Tuesday save and **skips** the scene ("owned by Godot"), without failing, so your edits
-survive; `npm run verify` skips it too. Changes to that scene from then on happen in Godot. `--force` regenerates it and
-throws the Godot edits away. Running the emitter directly (not through `npm run build`) has no guard: do not.
+**What we do: scaffold once, with pull** (decided 2026-10-01, pull added 2026-10-02). `npm run build` rewrites a scene only
+while it is exactly what the build last wrote. On Wednesday it sees your Tuesday save and does **not** write the scene
+("owned by Godot"), so your edits survive; `npm run verify` skips it. It reads the scene back and tells you what differs:
+Wednesday's rename is a **conflict** (both sides changed), which fails the build and offers two ways out:
+`npm run pull` rewrites `scene.def.ts` from the scene (your rename is lost, the Ball position and Timer are kept), and
+`npm run build -- --force` rewrites the scene (the other way round). If you had not touched the definition, the build would
+only say it is behind. Running the emitter directly (not through `npm run build`) has no guard: do not.
+
+**The catches of pull.**
+
+- It picks a side; it does not merge. Both-sided edits mean redoing one side by hand.
+- A pulled definition is one literal tree: helper functions (`vec()`), loops and comments of the hand-written file are gone.
+  Use git to get them back if you prefer to redo the Godot change in TypeScript instead.
+- A scene with groups, editor connections, instanced scenes or non-texture resources can only be pulled as a **mirror**: the
+  definition shows the tree, but the build never writes that scene again, and editing the mirror is reported as a conflict.
+- The comparison is by node path, so a rename in Godot reads as one node removed and one added.
 
 ## 2. The editor squiggles need a specific TypeScript setup
 
@@ -72,4 +84,8 @@ squiggles. That is the trade-off, and it may change if TypeScript 7 ever support
   directly. How the engine's scene type learns a game's paths is the next integration step.
 - **Godot exits with status 0 even when a scene fails to load.** Anything automated must read Godot's output, not its exit code.
 - **Windows was never run.** Paths are normalised in the code, but nothing was tried there.
-- **A fresh Godot project must be imported once** (`godot --headless --import`) before textures load.
+- **A fresh Godot project must be imported once** (`godot --headless --import`) before textures load, and before tstogd's
+  Godot check knows the scripts' class names (`Could not find type "Coin" in the current scope` until then). The generator
+  runs build, import, build for this reason.
+- **A script variable put in `props` instead of `scriptProps` passes the build.** Godot drops it silently. `npm run verify`
+  catches it (`Coin.value: expected number 5.0, got 1`), and so does the template's smoke test.

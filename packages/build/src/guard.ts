@@ -4,6 +4,12 @@ import { createHash } from "node:crypto";
 
 export const sha = (text: string): string => createHash("sha256").update(text).digest("hex").slice(0, 16);
 
+/** One entry of scene-defs/.emitted.json: the hash of what the build last wrote to a scene; for a scene Godot owns whose
+ * definition was pulled from it as a mirror, also the hash of what that definition emits (so a later edit to it shows). */
+export type StateEntry = string | { written: string; def: string };
+export const writtenOf = (e: StateEntry | undefined) => (typeof e === "object" ? e.written : e);
+export const defBaseOf = (e: StateEntry | undefined) => (typeof e === "object" ? e.def : e);
+
 export type Decision = "create" | "unchanged" | "overwrite" | "blocked-edited" | "blocked-unknown";
 
 export function decideWrite(a: { existing: string | null; lastHash: string | undefined; next: string; force: boolean }): Decision {
