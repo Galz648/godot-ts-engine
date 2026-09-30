@@ -1,0 +1,9 @@
+{
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.experimental.useTsgo": false,
+  "js/ts.experimental.useTsgo": false,
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "typescript.tsserver.pluginPaths": [
+    "engine/packages/lint-plugin"
+  ]
+}

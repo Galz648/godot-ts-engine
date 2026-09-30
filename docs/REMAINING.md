@@ -21,7 +21,7 @@ Done and checked (run `./check-all.sh` in this repo, and `npm run verify:breakou
 | --- | --- | --- | --- |
 | 1 | Per scene: **generated** (only edited in TypeScript), **scaffold once** (then owned by the Godot editor), or **split**? | The emitter overwrites; editor edits are lost on the next emit. | `LIMITS.md` section 1. Split needs instancing, which does not exist yet. |
 | 2 | Should registry keys **always include the folder** (`scriptsPongMain`) so they never change? | Adding `breakout/main.gd` renamed Pong's `Scripts.main` and broke its definition. | Breakout finding 1. Costs longer names everywhere. |
-| 3 | Keep the validator's `sprite-needs-texture` rule? | Godot itself does not warn about it. | Kept for now. |
+| 3 | ~~Keep the validator's `sprite-needs-texture` rule?~~ | **Kept** (2026-09-30): a warning, our rule, not Godot's. | See `DECISIONS.md`. |
 | 4 | ~~The GodotJS to tstogd switch~~ | **No such migration exists** (user, 2026-09-30). Removed. | |
 | 5 | ~~Rename the game repo~~ | **Done 2026-09-30:** `lightway-example` is now `godot-ts-playground` (GitHub redirects the old URL). | The local folder is still `lightway-example`; rename it with `mv` if you like. |
 
@@ -32,7 +32,8 @@ Done and checked (run `./check-all.sh` in this repo, and `npm run verify:breakou
 1. **Registry hand-over into the scene type.** Today each game writes three lines of `Vocab` by hand and imports engine types by relative path into the submodule. Make that a proper import with a helper.
 2. ~~Editor plugin on the real validator and the shared type~~ **Reworked 2026-09-30** (tolerant of helpers and loops; real validator). Seen working in the Cursor editor (2026-09-30). Still to do: the "feels no slower" check on a big scene file.
 3. ~~A `build` command~~ **Done (minimal, 2026-09-30):** `packages/build`, see `DAILY-WORKFLOW.md`. Still to do for it: a `--only <scene>` option, and running the registry step only when files changed.
-4. **Move the verifier into the engine** (`verify-scene.gd` and `export-expected.ts`, now in the game repo). It is generic and it found nothing false.
+4. ~~Move the verifier into the engine~~ **Done 2026-09-30:** `packages/verify` (`verify.ts` checks every `scene-defs/*.def.ts`; on the playground: Breakout 706 checks, Pong 41, 0 problems; a changed prop and an extra node are caught). Still to do: point the playground's `verify:*` scripts at it and delete its copies in `scene-defs/verify/` (`sim-breakout.gd` stays, it is Breakout's).
+5. **Game template** ~~(new)~~ **Done 2026-09-30:** `packages/create`. End-to-end check, as run: clone this repo to `/tmp`, commit the working tree there, then `bun <clone>/packages/create/src/create.ts my-game --engine-url <clone>`; then in the game `npm run check`, the editor plugin's `test/check-file.mjs`, and a headless run holding the right arrow (the square moves 174 px right, 0 down). Still to do: push, then try `npx github:Galz648/godot-ts-engine` from GitHub for real; tag a release so games can pin it; GitHub Actions for new games (left out on purpose).
 
 **B. Emitter features Breakout needed and could not have** (each one is a worked-around gap, not a guess)
 

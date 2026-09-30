@@ -12,6 +12,20 @@ each package runs on its own, against stubs of the others (see `docs/DECISIONS.m
 | `packages/emitter` | Writes a Godot 4 `.tscn` from a plain TypeScript tree | `bun install && bun run emit && bun run check` |
 | `packages/validator` | Structural rules and Godot class hierarchy, human-written messages | `bun install && npm test` |
 | `packages/lint-plugin` | TypeScript language-service plugin: validator findings as editor squiggles | `bun install && bun run test` |
+| `packages/verify` | Loads each generated scene in headless Godot and compares it, node by node, with its definition | `bun engine/packages/verify/src/verify.ts` from a game's root |
+| `packages/create` | Starts a new game from a template, with this engine mounted at `engine/` | `bun install && bun run test` |
+| `packages/scene-sync` | Prototype: read a `.tscn` back, three-way merge, analyzer (see `docs/MILESTONE-1.md`) | `bun install && bun run test` |
+
+## Start a new game
+
+    npx github:Galz648/godot-ts-engine my-game --name "My Game"
+
+It writes a small Godot project (one scene definition and one TypeScript script: a square you move with the arrow keys), adds
+this engine as a submodule pinned to one commit, installs, builds the editor plugin, builds, imports into Godot, runs
+`npm run verify` and makes the first commit. Needs git, Node 22+, bun and Godot 4.7 on `PATH` (without Godot it skips the
+import and the verify). Options: `--engine-ref <tag|branch|commit>` (default `main`; from a local checkout of this repo, its own
+commit, which must be pushed), `--engine-url`, `--no-install`, `--files-only`. The template is `packages/create/template/`; the
+new game's `README.md` and `AGENTS.md` explain its daily loop.
 
 **Day-to-day loop: [`docs/DAILY-WORKFLOW.md`](docs/DAILY-WORKFLOW.md).** **What is left: [`docs/REMAINING.md`](docs/REMAINING.md).** `./check-all.sh` runs every check. **The Breakout proof (142 nodes): [`docs/BREAKOUT-PROOF.md`](docs/BREAKOUT-PROOF.md).** **The Pong proof: [`docs/PONG-PROOF.md`](docs/PONG-PROOF.md).** **Using the registry in a game: [`docs/USING-THE-REGISTRY.md`](docs/USING-THE-REGISTRY.md).** **Limits, in plain language: [`docs/LIMITS.md`](docs/LIMITS.md).** Read this before relying on the emitter or the editor plugin.
 

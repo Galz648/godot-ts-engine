@@ -1,0 +1,4 @@
+node_modules/
+.godot/
+.tstogd-cache/
+.DS_Store

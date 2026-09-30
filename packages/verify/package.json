@@ -1,0 +1,13 @@
+{
+  "name": "verify",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.2",
+    "@types/node": "^26.6.3",
+    "typescript": "~5.9"
+  }
+}

@@ -18,6 +18,8 @@ every check: `./check-all.sh`.
 | 6 | One `build` command | `packages/build` | **Done (minimal)**: convert, registry, validate, emit, convert again; `--watch`; an overwrite guard. See `DAILY-WORKFLOW.md`. | `cd packages/build && bun run test`; `npm run build` in the game repo |
 | 7b | Second proof: a bigger scene (Breakout, 142 nodes) | game repo `scene-defs/` | **Done**: 706 checks against the tree, 0 problems; the real physics plays (see `BREAKOUT-PROOF.md`). Found 5 things, no engine bug. | `npm run verify:breakout`, `npm run sim:breakout` |
 | 7 | Proof on a real scene (Pong) | game repo `scene-defs/` | **Done**: generated scene identical to the hand-made one in Godot (see `PONG-PROOF.md`). Found and fixed one real bug (`scriptProps`). | `npm run scenes:pong`, then the dump and simulation in `PONG-PROOF.md` |
+| 8 | Scene sync (read `.tscn` back, three-way merge, analyzer) | `packages/scene-sync` | **Prototype**, not wired into `build`. Lossless for what the emitter writes; reports (does not drop) groups, connections, instances, non-texture resources. Measured on real Godot 4.7.2 output (scripted edits, Godot's scene writer); the hand session in the editor UI is still open (see `MILESTONE-1.md`). | `cd packages/scene-sync && bun run test && bun run check` |
+| 9 | Game template and generator | `packages/create`, `packages/verify` | **Done**: `npx github:Galz648/godot-ts-engine my-game`. Checked end to end on a throwaway copy of this repo: build, Godot import, verify (4 nodes, 25 checks), editor plugin on the new game's scene file, and the starter square moving when a key is held (headless). The `npx github:` route itself needs this pushed. | `cd packages/create && bun run test`; the end-to-end run is in `REMAINING.md` |
 
 Layers 1-3 together: `cd packages/scene && bun run demo` passes **one tree** to the validator and the emitter. The
 good tree gives 0 findings and is written as a 4-node scene; the same tree minus its collision shape gives 1 validator
@@ -41,7 +43,7 @@ warning and is still written (the emitter trusts its input, by design).
 
 ## Decisions that shape this
 
-See `DECISIONS.md`. In short: switch the game to tstogd; the `extends` check comes later; the tools live in this repo,
+See `DECISIONS.md`. In short: tstogd only (there is no GodotJS migration); the `extends` check comes later; the tools live in this repo,
 used by the game as a submodule; integrate slowly.
 
 ## Known limits

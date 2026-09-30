@@ -1,0 +1,8 @@
+{
+  "name": "godot-ts-engine",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "create-godot-ts-game": "packages/create/src/create.ts"
+  }
+}

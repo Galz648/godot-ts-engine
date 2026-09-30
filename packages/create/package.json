@@ -1,0 +1,14 @@
+{
+  "name": "create",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "bun test src",
+    "check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.2",
+    "@types/node": "^26.6.3",
+    "typescript": "~5.9"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "tsDir": "src",
+  "gdDir": ".",
+  "typingsDir": "src/_typings",
+  "exclude": [
+    "engine",
+    "engine/**",
+    "tools",
+    "tools/**",
+    "scene-defs",
+    "scene-defs/**"
+  ]
+}
