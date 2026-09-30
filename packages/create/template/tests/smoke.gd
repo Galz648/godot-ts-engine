@@ -23,6 +23,9 @@ func _initialize() -> void:
 		if (main.get_node(path) as Sprite2D).texture == null:
 			fail("%s has no texture" % path)
 			return
+	if not main.get_node("Coin") is Coin:
+		fail("the Coin node has no coin script (script: Scripts.coin in scene-defs/main.def.ts)")
+		return
 	value = main.get_node("Coin").get("value")
 	if value == 1:
 		fail("Coin.value is 1, the script's default: the value set in scene-defs/main.def.ts did not reach the scene")

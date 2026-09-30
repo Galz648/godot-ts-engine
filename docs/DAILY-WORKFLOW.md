@@ -9,11 +9,11 @@ with pull", `DECISIONS.md`).
 
 **What works**
 
-- **New game:** `npx github:Galz648/godot-ts-engine#v0.1.4 my-game --name "My Game" --engine-ref v0.1.4` gives a runnable
+- **New game:** `npx github:Galz648/godot-ts-engine#v0.1.5 my-game --name "My Game" --engine-ref v0.1.5` gives a runnable
   Godot project: collect-the-coin (two SVG textures, a body and an area with shapes, an exported variable set from the
   definition, a custom signal), this engine pinned at `engine/`, a first build, `verify` and a headless smoke test that pass,
   and a first commit. The game's README has a "Try breaking it" table: eleven mistakes and the message that catches each.
-  (Games started from `v0.1.0` or `v0.1.1` lack pull and the drift notice: update their `engine/` to `v0.1.4`; optionally add
+  (Games started from `v0.1.0` or `v0.1.1` lack pull and the drift notice: update their `engine/` to `v0.1.5`; optionally add
   `"pull": "bun engine/packages/build/src/build.ts --pull"` to `package.json`.)
 - **Scripts:** TypeScript in `src/scripts/`, compiled to GDScript by tstogd. The whole Godot API is typed, and so are your
   scenes' nodes, `res://` paths, groups and signals (tstogd generates those typings from the project).

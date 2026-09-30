@@ -13,7 +13,7 @@
 // Godot import, verify, smoke test, first commit. Every step says what it did; a failed step stops with the command to retry.
 
 import { spawnSync, type SpawnSyncOptions } from "node:child_process";
-import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, utimesSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { basename, dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -140,16 +140,15 @@ function create(opts: Options) {
       // imported, and the import needs the .gd files. So a first build that may fail on that, the import, then the real one.
       spawnSync("npm", ["run", "--silent", "build"], { cwd: dir, encoding: "utf8" });
       run(godot, ["--headless", "--path", dir, "--import"], { cwd: dir, quiet: true });
-      // tstogd only rewrites the typings of scripts it sees change; they should list the uids the import just made
-      const now = new Date();
-      for (const f of readdirSync(join(dir, "src"), { recursive: true }) as string[]) {
-        if (f.endsWith(".ts") && !f.startsWith("_typings")) utimesSync(join(dir, "src", f), now, now);
-      }
     }
     run("npm", ["run", "--silent", "build"], { cwd: dir });
     if (has(godot)) {
       run(godot, ["--headless", "--path", dir, "--import"], { cwd: dir, quiet: true });
       say("godot", "project imported (class names cached, textures imported)");
+      // The typings list each script's uid, from the .uid files the import just made, but tstogd's cache skips typings of
+      // unchanged scripts. Without this, the first edit to each script would also add an unrelated uid line.
+      run("npx", ["tstogd", "clear-cache"], { cwd: dir, quiet: true });
+      run("npx", ["tstogd", "generate-typings"], { cwd: dir, quiet: true });
       run("npm", ["run", "--silent", "verify"], { cwd: dir });
       run("npm", ["run", "--silent", "smoke"], { cwd: dir });
     } else say("godot", `not on PATH: skipped import, verify and smoke. Later: godot --headless --import && npm run verify && npm run smoke`);

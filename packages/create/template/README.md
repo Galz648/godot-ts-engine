@@ -23,16 +23,119 @@ Press F5 in Godot to run. The starter: move the blue square with the arrow keys 
 | `scene-defs/main.def.ts` | A body with a sprite and a rectangle shape, an area with a sprite and a circle shape, a HUD |
 | `Coin` in the definition | Sets the script's exported `value` (`scriptProps: { value: 5 }`) |
 | `src/scripts/coin.ts` | A custom signal, `collected = gd.signal<[value: int]>()`, emitted on `body_entered` |
-| `src/scripts/main.ts` | Connects `coin.collected` in code, with a typed handler, and shows the score |
+| `src/scripts/main.ts` | Connects every coin's `collected` in code, with a typed handler, and shows the score |
 | `tests/smoke.gd` | Plays it headless and fails if the coin cannot be collected or the value got lost |
 | `Project.viewport` in the definition | The viewport size from `project.godot`: every position in `main.def.ts` is derived from it |
 
-## The screen size
+## How to...
 
-Set it in Godot: Project Settings > Display > Window > Viewport Width / Height (stored in `project.godot`). The next
-`npm run build` (or `npm run dev`, straight away) regenerates `Project.viewport` in `scene-defs/registry.gen.ts` and rewrites
-the scene from it. Scripts read it at runtime with `this.get_viewport_rect().size`, the smoke test from `ProjectSettings`.
-The stretch mode is `canvas_items`, so the game always sees that size and a bigger window scales it up.
+Start `npm run dev` in a terminal and leave it running: every recipe below is then just "edit, save, look". Without it,
+run `npm run build` after each change. Press F5 in Godot to play.
+
+The recipes that edit `scene-defs/main.def.ts` work while the build owns `scenes/main.tscn`. Once you save that scene in
+Godot, make scene changes in Godot instead, or run `npm run pull` first (see "When a scene is saved in Godot").
+
+### Change the screen size
+
+1. In Godot: Project > Project Settings > Display > Window > Viewport Width and Viewport Height. (Or edit
+   `window/size/viewport_width` and `viewport_height` in `project.godot`.)
+2. Save. The build regenerates `Project.viewport` in `scene-defs/registry.gen.ts` and rewrites the scene: the background,
+   the player, the coin and the hint all follow, because `main.def.ts` places them from `Project.viewport`, never from
+   fixed numbers. Do the same in your own definitions: `const { width: W, height: H } = Project.viewport;`.
+3. In scripts, read the size while the game runs: `this.get_viewport_rect().size`.
+
+The stretch mode is `canvas_items`, so the game always sees exactly that size; a bigger window scales it up.
+
+### Change the game's name (the window title)
+
+Project > Project Settings > Application > Config > Name (or `config/name` in `project.godot`).
+
+### Change the background colour
+
+In `scene-defs/main.def.ts`, the `Background` node: `color: { raw: "Color(0.08, 0.09, 0.12, 1)" }`. The four numbers are
+red, green, blue and opacity, each from 0 to 1.
+
+### Make the player faster or slower
+
+- For every player: `speed` in `src/scripts/player.ts` (`@exports speed: float = 360.0`).
+- For this scene only: add `scriptProps: { speed: 500 }` to the `Player` node in `main.def.ts`. Script variables go in
+  `scriptProps`, never in `props`; the build tells you if you mix them up.
+
+### Change the controls
+
+In `src/scripts/player.ts`, the `Key.KEY_...` names (`Key.KEY_LEFT`, `Key.KEY_A`, ...). Your editor autocompletes them.
+
+### Change what a coin is worth, or add another coin
+
+- Worth: `scriptProps: { value: 5 }` on the `Coin` node in `main.def.ts`.
+- Another coin: copy the whole `Coin` block in `main.def.ts`, give the copy a new `name` (`"Coin2"`: names must be unique)
+  and a new `position`. No code needed: `main.ts` connects every coin directly under `Main`.
+
+### Replace a picture, or add a new one
+
+- Replace: save your file over `art/player.svg` or `art/coin.svg` (same name). PNG, JPG, WebP or SVG.
+- Add: put the file in `art/`, for example `art/big-rock.png`. The build lists it in the registry as `Textures.bigRock`
+  (the file name, in camelCase), and your editor autocompletes it. Use it on a sprite:
+  `{ name: "Rock", type: "Sprite2D", props: { position: vec(100, 100), texture: { ext: Textures.bigRock } } }`.
+- Godot has to import a new or replaced picture before it shows: keep the Godot editor open (it does that by itself), or
+  run `godot --headless --import`.
+
+### Give a node its own behaviour (a new script)
+
+1. Create `src/scripts/spinner.ts` with one exported class, named after what it does (class names must be unique):
+
+       export class Spinner extends Sprite2D {
+         @exports turns_per_second: float = 0.5;
+
+         _process(delta: float): void {
+           this.rotation += this.turns_per_second * TAU * delta;
+         }
+       }
+
+2. Attach it in the definition: `script: Scripts.spinner` on a `Sprite2D` node, and set its variable there if you like:
+   `scriptProps: { turns_per_second: 1 }`.
+3. If another script refers to the new class by name (`import { Spinner } from './spinner'`), run
+   `godot --headless --import` once (or have the editor open), so Godot learns the name.
+
+### Add another scene (a level)
+
+1. Copy `scene-defs/main.def.ts` to `scene-defs/level2.def.ts` and change its last line to
+   `export const output = "scenes/level2.tscn";`. Change whatever you like in it.
+2. The build writes `scenes/level2.tscn`, and `npm run verify` checks it too.
+3. To go there from a script: `this.get_tree().change_scene_to_packed(preload("res://scenes/level2.tscn"));`. Use
+   `preload`: a wrong path is then an error in the build (`Preload file ... does not exist`), not a crash while playing.
+4. To start the game on it: Project > Project Settings > Application > Run > Main Scene.
+
+### Keep working on a scene in the Godot editor
+
+Just do it and save. From then on the build no longer writes that scene; it tells you how the definition and the scene
+compare instead. See "When a scene is saved in Godot" below.
+
+### Undo an experiment
+
+`git checkout .` puts every tracked file back as it was at the last commit (`git status` shows what changed; new files you
+added stay: delete them by hand).
+
+### Check everything before committing
+
+    npm run build && npm run verify && npm run smoke
+
+The smoke test walks the player right from where it starts until it touches the `Coin`. If you move them off one line or
+remove the coin, change `tests/smoke.gd` to match.
+
+### When the build says...
+
+| Message | What it means | What to do |
+| --- | --- | --- |
+| `scene-defs: 1 type error; no scene written` | A typo, or a picture or script that no longer exists | Read the line above it: it names the file and says what is wrong |
+| `FAILED validation, nothing written` | The scene would be broken in Godot (two nodes with one name, not a Godot class, ...) | The line above it says which node and how to fix it |
+| `warning: ...` | Godot would warn about this too (a body without a shape, ...) | Fix it or ignore it: the scene is still written |
+| `owned by Godot; main.def.ts matches it` | You saved the scene in Godot, and nothing differs | Nothing |
+| `main.def.ts is behind the scene` | You changed the scene in Godot | Nothing, or `npm run pull` |
+| `CONFLICT` | You changed both the definition and the scene | `npm run pull` keeps Godot's, `npm run build -- --force` keeps yours |
+| `Could not find type "X" in the current scope` | Godot does not know a new class name yet | `godot --headless --import` once, or open the Godot editor |
+| `NOT WRITTEN: ... this tool never wrote it` | The definition's `output` is a scene you made yourself | Pick another `output` |
+| `SMOKE FAIL: ...` | The play test found a problem: `no coin after 300 frames` means the player never reached the coin | Read the rest of the message; see "Check everything before committing" |
 
 ## How to work
 
@@ -75,7 +178,7 @@ Each of these is caught before you press F5. Undo with `git checkout .`
 | `type: "Area2D"` -> `"Area2d"` | editor squiggle, `npm run build` | `Type '"Area2d"' is not assignable to type 'NodeType'. Did you mean '"Area2D"'?` (untyped definitions get the validator's `"Area2d" is not a Godot class`) |
 | Rename `Hint` to `Score` (two siblings named `Score`) | `npm run build` | `Another child of "Hud" is already called "Score"`; nothing written |
 | Remove the Coin's `Shape` | `npm run build` (warning), `npm run smoke` | Godot's own "This node has no shape" warning; smoke: `no coin after 300 frames` |
-| Remove `script: Scripts.coin` | `npm run build` (a warning, then tstogd fails the build) | `These script variables are ignored because this node has no script`, then `main.ts: ... & Area2D' is missing the following properties from type 'Coin'` |
+| Remove `script: Scripts.coin` | `npm run build` (warning), `npm run smoke` | `These script variables are ignored because this node has no script`; smoke: `the Coin node has no coin script` |
 | Move `value: 5` from `scriptProps` into `props` | `npm run build` (and `verify`, `smoke`) | `"value" is a variable of scripts/coin.gd, so it belongs in scriptProps`; nothing written |
 | `value` -> `valu` in the Coin's `scriptProps` | `npm run build` (warning) | `"valu" is not a variable of scripts/coin.gd` |
 | `this.get_node('Hud/Scroe')` in `main.ts` | tstogd (`npm run build`) | `Type 'Node \| null' is not assignable to type 'Label'` |
