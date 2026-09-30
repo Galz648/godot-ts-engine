@@ -16,6 +16,8 @@ run emitter     bun test tools/emit-tscn.test.ts
 run emitter     bun run check
 run validator   npm test
 run validator   npm run check
+run build       bun run test
+run build       bun run check
 run lint-plugin bun run test
 [ "$fail" = 0 ] && echo "all checks passed" || echo "SOME CHECKS FAILED"
 exit $fail

@@ -31,14 +31,14 @@ Done and checked (run `./check-all.sh` in this repo, and `npm run verify:breakou
 
 1. **Registry hand-over into the scene type.** Today each game writes three lines of `Vocab` by hand and imports engine types by relative path into the submodule. Make that a proper import with a helper.
 2. **Editor plugin on the real validator and the shared type.** It still calls a two-rule stub and reads a top-level `texture` field that no longer exists (it is `props.texture: { ext }`, and there is now `scriptProps`). Then redo the editor checks.
-3. **A `build` command** in the engine: tstogd convert, registry, validate, emit; stop on errors; with `--watch`. The game repo has a two-step npm script as a stand-in.
+3. ~~A `build` command~~ **Done (minimal, 2026-09-30):** `packages/build`, see `DAILY-WORKFLOW.md`. Still to do for it: a `--only <scene>` option, and running the registry step only when files changed.
 4. **Move the verifier into the engine** (`verify-scene.gd` and `export-expected.ts`, now in the game repo). It is generic and it found nothing false.
 
 **B. Emitter features Breakout needed and could not have** (each one is a worked-around gap, not a guess)
 
 - Share one resource between nodes (40 identical brick shapes became 40 resources).
 - Groups, signal connections (`[connection]`), instanced scenes, `uid://` references.
-- An **overwrite guard**: before writing, compare the file on disk with what was written last time and warn if someone edited it. Small; would make limit 1 much safer.
+- ~~An overwrite guard~~ **Done** (in `packages/build`, not in the emitter itself): a scene changed since the tool wrote it is not overwritten without `--force`.
 
 **C. Validator**
 
