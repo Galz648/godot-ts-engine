@@ -91,7 +91,10 @@ scenes in `sample/godot-check/`, run by hand by the user in the Godot 4.7.2 edit
 in the table below were correct: `clean.tscn` no warning; `ball-no-shape.tscn` a warning on Ball;
 `shape-needs-shape-prop.tscn` and `shape-needs-body.tscn` a warning on Shape; `sprite-needs-texture.tscn` NO warning
 (the validator's `sprite-needs-texture` rule is not a Godot warning). The hover text of the triangles was not reported, so
-the message wording was not compared. The AnimatableBody2D case (below) was NOT tested: there is no fixture for it.
+the message wording was not compared. The AnimatableBody2D case (below) was tested afterwards with `godot-check/animatable-with-shape.tscn` and
+`animatable-no-shape.tscn` (fixtures `sample/fixtures/animatable-*.ts`): the user saw NO warning on the first and a warning on
+`Platform` in the second. The validator does the opposite on both (warns on the first: false alarm; "ok: no issues" on the
+second: missed warning), so the source-based prediction is confirmed by observation.
 The agent's own notes from before that run (it had no way to look at the editor) follow.
 
 - PoC 2 is not available to me, so I wrote the `.tscn` files by hand in `sample/godot-check/` (same shape the emitter
@@ -145,7 +148,8 @@ The agent's own notes from before that run (it had no way to look at the editor)
 
 ## Not done
 
-- Godot hover-text wording and the AnimatableBody2D case (check 6 was run for five scenes only), see above.
+- Godot hover-text wording was not compared (check 6). The validator's hardcoded four body types are not fixed; the
+  AnimatableBody2D false alarm and missed warning are confirmed but left as they are (needs Godot's class hierarchy).
 - No Windows run. The code has no path handling beyond `resolve`/`pathToFileURL`.
 - No rule for CollisionPolygon2D parents, the `extends` check, or class-hierarchy checks (out of scope per the handover;
   a hierarchy would also fix the AnimatableBody2D false positive).
