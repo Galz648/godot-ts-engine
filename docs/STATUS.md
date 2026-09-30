@@ -10,7 +10,7 @@ cleanly, and write down where we stand.** So most of the pipeline is deliberatel
 | 1 | Shared scene type | `packages/scene` | **Integrated** | `cd packages/scene && bun run check && bun run check:examples` (8 expected type errors, exactly) |
 | 2 | Validator uses it | `packages/validator` | **Integrated** | `cd packages/validator && npm test` (40 pass) |
 | 3 | Emitter uses it | `packages/emitter` | **Integrated** | `cd packages/emitter && bun run emit` (prints `unchanged`: output identical to before the change) |
-| 4 | Path registry | `packages/registry` | Standalone, **held** | `cd packages/registry && bun run gen && bun run check` |
+| 4 | Path registry | `packages/registry` | Standalone, **held**. Usable by hand today: see `USING-THE-REGISTRY.md` | `cd packages/registry && bun run gen && bun run check`; `cd packages/scene && bun run demo:registry` |
 | 5 | Editor plugin | `packages/lint-plugin` | Standalone, **held** | `cd packages/lint-plugin && bun run test` |
 | 6 | One `build` command | (none yet) | Not started, held | |
 | 7 | Proof on a real scene (Pong) | (none yet) | Not started, held | |
