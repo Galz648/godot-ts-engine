@@ -162,7 +162,7 @@ function create(opts: Options) {
   console.log(`  cd ${relative(process.cwd(), dir) || "."}`);
   if (!opts.install) console.log("  npm install && npm run setup:editor && npm run build");
   console.log("  godot -e                        # open it in Godot, F5 to run");
-  console.log("  tools/cursor-profile/launch.sh  # open it in Cursor with scene squiggles");
+  console.log("  cursor .                        # scene squiggles: open a .def.ts, click the TypeScript version in the status bar, pick \"Use Workspace Version\"");
   console.log("  npm run dev                     # rebuild on every save");
 }
 

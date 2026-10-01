@@ -68,7 +68,7 @@ the editor after the scaffold. Kept here as the list to come back to.
 
 ## Housekeeping (on your machine / accounts)
 
-- Two throwaway Cursor profiles exist: `~/.cc-poc4` (delete it) and `~/.cc-lightway` (made by `tools/cursor-profile/launch.sh`; keep if you use that launcher).
+- Two throwaway Cursor profiles exist: `~/.cc-poc4` (delete it) and `~/.cc-lightway` (made by the old `tools/cursor-profile/launch.sh`, since removed; delete it).
 - The shelved branch `layer2-validation` in the game repo holds an earlier validation attempt; delete it or keep it as reference.
 - The original handover and overview documents are in `docs/pocs/`.
 

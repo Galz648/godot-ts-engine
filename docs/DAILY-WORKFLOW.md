@@ -20,7 +20,7 @@ with pull", `DECISIONS.md`).
 - **Scenes, optionally:** scaffolded from `scene-defs/*.def.ts`. Checked with readable errors, written as `.tscn`, with typed
   script and texture paths from the registry.
 - **Checks:** `npm run build` compiles, checks and writes; `npm run verify` loads each generated scene in headless Godot and
-  compares it with its definition; squiggles while you type, through `tools/cursor-profile/launch.sh`.
+  compares it with its definition; squiggles while you type, from the game's `.vscode/settings.json` and `scene-lint` dev dependency.
 
 **The workflow**
 
@@ -154,9 +154,10 @@ file. It is live feedback only; `npm run build` is what checks the whole tree. O
 
 1. Build the plugin: `cd engine/packages/lint-plugin && bun install && bun run build`.
 2. `scene-defs/tsconfig.json` lists it: `"plugins": [{ "name": "scene-lint" }]` (already done in the game repo).
-3. The editor must use the project's TypeScript 5.9 with TypeScript 7 off, and know where the plugin is. The Cursor profile does both:
-   `tools/cursor-profile/launch.sh` (it sets `typescript.tsserver.pluginPaths` to `engine/packages/lint-plugin` and turns TypeScript 7 off).
-   Accept the prompt to use the workspace TypeScript version.
+3. The editor must use the project's TypeScript 5.9 with TypeScript 7 off, and find the plugin. The game's `.vscode/settings.json`
+   turns TypeScript 7 off and points at `node_modules/typescript`; the `scene-lint` dev dependency (`file:engine/packages/lint-plugin/plugins/scene-lint`)
+   puts the plugin where that TypeScript finds it. Cursor did not offer the prompt on its own: open a `.def.ts`, click the TypeScript version in the status bar and pick **Use Workspace Version** (once per folder).
+   (`typescript.tsserver.pluginPaths` does not work here: VS Code ignores it in workspace settings.)
 
 What it sees: the literal parts of a definition. Nodes made by helper functions, loops or spreads are opaque to it (see `LIMITS.md`).
 To see exactly what the editor would show without an editor: `node engine/packages/lint-plugin/test/check-file.mjs scene-defs scene-defs/pong.def.ts`.

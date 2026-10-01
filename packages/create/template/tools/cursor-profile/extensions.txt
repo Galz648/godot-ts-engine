@@ -1,7 +1,0 @@
-# TypeScript-related extensions installed into the separate profile by launch.sh (one id per line).
-mattpocock.ts-error-translator
-oven.bun-vscode
-esbenp.prettier-vscode
-#
-# Deliberately NOT here: typescriptteam.native-preview (TypeScript 7) and ms-vscode.vscode-typescript-next.
-# Either one replaces the TypeScript version the scene-lint plugin needs (5.9.x) and stops it from loading.

@@ -198,7 +198,7 @@ Each of these is caught before you press F5. Undo with `git checkout .`
 | `scene-defs/.emitted.json` | What the build last wrote (commit it) | no |
 | `scenes/main.tscn` | Generated from `main.def.ts`, until you save it in Godot | in Godot, once you are happy with the scaffold |
 | `engine/` | git submodule: godot-ts-engine | no |
-| `tools/cursor-profile/` | Opens Cursor with the scene squiggles working | |
+| `.vscode/settings.json` | Makes Cursor / VS Code use the project's TypeScript 5.9, so the scene squiggles work | |
 
 ## Setup on a new machine
 
@@ -209,7 +209,8 @@ Each of these is caught before you press F5. Undo with `git checkout .`
     npm run build
 
 Needs Godot 4.7 on `PATH` (or `GODOT=/path/to/godot`), Node 22+, bun, and TypeScript 5.9 (TypeScript 7 lacks the compiler
-API tstogd needs). For live squiggles in scene definitions, open the game with `tools/cursor-profile/launch.sh`.
+API tstogd needs). For live squiggles in scene definitions, open the folder in Cursor / VS Code, open a `.def.ts` file, click the TypeScript version number in the status bar (bottom
+right) and choose **Use Workspace Version** (5.9). Cursor may not ask on its own. Do this once per folder. The plugin comes from the `scene-lint` dev dependency.
 
 ## Updating the engine
 

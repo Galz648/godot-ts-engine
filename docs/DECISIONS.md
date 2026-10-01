@@ -36,9 +36,11 @@ Who decided is marked on each line.
 - **The validator's `sprite-needs-texture` rule is kept** (2026-09-30, milestone 1). Godot shows no warning for a `Sprite2D` without a
   texture, so this rule is a project rule, not a Godot rule. It stays a warning, fires on neither real scene, and its message says
   "unless a script sets one".
-- **Cursor setup for other people** (user): a separate, small profile in `tools/cursor-profile/`: four TypeScript settings and three
-  TypeScript extensions only. No keybindings, no personal settings, no machine paths. `launch.sh` runs it beside the normal Cursor.
-  The profile forces TypeScript 7 off because it disables every tsserver plugin, which the scene-lint plugin needs.
+- **Cursor setup for other people** (user): (replaced 2026-10-01) the separate Cursor profile in `tools/cursor-profile/` is gone. The game ships
+  `.vscode/settings.json` (workspace TypeScript 5.9, TypeScript 7 off) and a `scene-lint` dev dependency. TypeScript 7 disables every
+  tsserver plugin, which the scene-lint plugin needs, hence the workspace override. `typescript.tsserver.pluginPaths` is
+  machine-scoped, so it cannot be set per workspace; the local dependency replaces it. Checked in a real tsserver and by
+  the user in Cursor. The earlier profile approach is in git history.
 
 ## Scope: scaffold once (user, 2026-10-01)
 
@@ -79,7 +81,7 @@ Who decided is marked on each line.
 | Separate engine repo as a submodule | done: `godot-ts-engine`, mounted in the game repo as `engine/` |
 | Class hierarchy in the validator and types | done (validator 40 tests; class data from Godot 4.7.2) |
 | Shared `SceneNode` type | done (`packages/scene`), used by the validator and the emitter |
-| Cursor profile | done, in `tools/cursor-profile/` |
+| Cursor setup | done: `.vscode/settings.json` + `scene-lint` dev dependency in the template |
 | Scene policy | decided 2026-10-01: scaffold once; the build does not write scenes saved in Godot and `verify` skips them |
 | Drift notice, conflict, pull | done 2026-10-02 (flag only, hybrid ownership) |
 | Merge, new emitter features | frozen 2026-10-01 |

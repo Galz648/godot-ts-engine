@@ -54,9 +54,15 @@ what happened to you. It worked once we used a clean profile and picked "Use Wor
 **What you do not lose.** Ordinary TypeScript errors still show, and the validator runs in the build step and finds the
 same problems there. The plugin is live feedback while typing. It is not where the rules are enforced.
 
-**What to do.** Use `tools/cursor-profile/launch.sh` (TypeScript 7 off, workspace TypeScript offered), or turn TypeScript 7
-off in your own settings while working on scene files. Anyone who wants TypeScript 7 everywhere gives up the live
-squiggles. That is the trade-off, and it may change if TypeScript 7 ever supports plugins (we do not know).
+**What to do.** Nothing to set up: the game's `.vscode/settings.json` turns TypeScript 7 off for that folder and offers the
+workspace TypeScript, and the `scene-lint` dev dependency makes the plugin findable. Open the folder in Cursor, open a `.def.ts`, click the
+TypeScript version in the status bar and choose **Use Workspace Version** (5.9), once per folder. Cursor did not show a prompt for it. Why a local dependency and not
+`typescript.tsserver.pluginPaths`: that setting is machine-scoped, so VS Code ignores it in a workspace (it is in
+`typescript-language-features/package.json`, `"scope":"machine"`). `useTsgo` and `tsdk` are window-scoped, so the workspace
+file does count. Seen working in a fresh game folder in Cursor with the TypeScript Native Preview extension installed and
+`useTsgo` set to `true` in the user's own settings: the workspace setting wins. If a squiggle never appears, check Output >
+TypeScript for the "TypeScript 7 is enabled globally" line and disable that extension for the workspace. The earlier separate
+launcher is gone.
 
 ## 3. Smaller limits we know about
 
